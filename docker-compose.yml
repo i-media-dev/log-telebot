@@ -1,0 +1,6 @@
+services:
+  log-telebot:
+    image: imediadev/log-telebot
+    env_file: .env
+    volumes:
+      - ./logs:/app/logs

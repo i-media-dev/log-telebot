@@ -1,9 +1,15 @@
-from logger.bot import LogMonitor
+import os
+
+from dotenv import load_dotenv
+
+from logger.bot import IBotLog
+
+load_dotenv()
 
 
 def main():
-    loger = LogMonitor()
-    loger.check_logs('nightly-processing')
+    bot = IBotLog(os.getenv('TELEGRAM_TOKEN'))
+    bot.run()
 
 
 if __name__ == '__main__':

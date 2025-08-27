@@ -2,10 +2,6 @@
 *.bac
 *.dat
 *.log
-*.jpg
-*.jpeg
-*.png
-*.webp
 *.json
 *.csv#
 *.csv
