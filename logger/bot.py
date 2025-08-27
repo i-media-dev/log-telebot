@@ -1,5 +1,8 @@
 import logging
 
+import schedule
+import time
+import threading
 from telebot import TeleBot, types
 
 from logger.constants import PROJECTS
@@ -14,13 +17,51 @@ class IBotLog:
     def __init__(self, token: str, log_monitor=None):
         self.log_monitor = log_monitor or LogMonitor()
         self.bot = TeleBot(token)
+        self.active_users = set()
         self.setup_handlers()
+        self.setup_daily_checks()
+
+    def setup_daily_checks(self):
+        for project_name, project_config in PROJECTS.items():
+            check_time = project_config.get('check_time', '09:00')
+            schedule.every().day.at(check_time).do(
+                self.send_project_report,
+                project_name
+            )
+        threading.Thread(target=self.run_scheduler, daemon=True).start()
+
+    def run_scheduler(self):
+        while True:
+            schedule.run_pending()
+            time.sleep(60)
+
+    def send_project_report(self, project_name: str):
+        result = self.log_monitor.check_logs(project_name)
+        for chat_id in list(self.active_users):
+            try:
+                self.bot.send_message(chat_id, result)
+                if 'SUCCESS' in result:
+                    try:
+                        with open('robot/like-robot.jpg', 'rb') as photo:
+                            self.bot.send_photo(chat_id, photo)
+                    except FileNotFoundError:
+                        logging.warning('Робот like-robot не найден')
+                else:
+                    try:
+                        with open('robot/disslike-robot.png', 'rb') as photo:
+                            self.bot.send_photo(chat_id, photo)
+                    except FileNotFoundError:
+                        logging.warning('Робот disslike-robot не найден')
+            except Exception as e:
+                logging.error(f"Пользователь {chat_id} недоступен: {e}")
+                self.active_users.discard(chat_id)
 
     def setup_handlers(self):
         @self.bot.message_handler(commands=['start'])
         def wake_up(message):
             chat = message.chat
             chat_id = chat.id
+            self.active_users.add(chat_id)
             name = chat.first_name
             keyboard = types.ReplyKeyboardMarkup(resize_keyboard=True)
             button_check = types.KeyboardButton('/logs')
@@ -79,11 +120,17 @@ class IBotLog:
                     reply_markup=keyboard
                 )
                 if 'SUCCESS' in result:
-                    with open('robot/like-robot.jpg', 'rb') as photo:
-                        self.bot.send_photo(chat_id=chat_id, photo=photo)
+                    try:
+                        with open('robot/like-robot.jpg', 'rb') as photo:
+                            self.bot.send_photo(chat_id=chat_id, photo=photo)
+                    except FileNotFoundError:
+                        logging.warning('Робот like-robot не найден')
                 else:
-                    with open('robot/disslike-robot.png', 'rb') as photo:
-                        self.bot.send_photo(chat_id=chat_id, photo=photo)
+                    try:
+                        with open('robot/disslike-robot.png', 'rb') as photo:
+                            self.bot.send_photo(chat_id=chat_id, photo=photo)
+                    except FileNotFoundError:
+                        logging.warning('Робот disslike-robot не найден')
             except Exception as e:
                 logging.error(f'Ошибка {e}')
 
@@ -103,6 +150,15 @@ class IBotLog:
                 )
             except Exception as e:
                 logging.error(f'Ошибка {e}')
+
+        @self.bot.message_handler(commands=['deploy_success'])
+        def deploy_success(message):
+            chat_id = message.chat.id
+            try:
+                with open('robot/deploy-robot.png', 'rb') as photo:
+                    self.bot.send_photo(chat_id=chat_id, photo=photo)
+            except FileNotFoundError:
+                logging.warning('Робот deploy-robot не найден')
 
     def run(self):
         self.bot.polling()
