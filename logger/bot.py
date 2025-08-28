@@ -4,7 +4,6 @@ import os
 from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.triggers.cron import CronTrigger
 from telebot import TeleBot, types
-
 from dotenv import load_dotenv
 
 from logger.constants import PROJECTS
