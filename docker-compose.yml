@@ -1,6 +1,7 @@
 services:
   log-telebot:
     image: imediadev/log-telebot
+    user: "1002:1002"
     env_file: .env
     volumes:
       - ./logs:/app/logs
