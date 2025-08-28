@@ -39,11 +39,11 @@ class IBotLog:
         self.scheduler.start()
 
     def send_project_report(self, project_name: str):
-        result = self.log_monitor.check_logs(project_name)
+        tag, result = self.log_monitor.check_logs(project_name)
         for chat_id in list(self.active_users):
             try:
                 self.bot.send_message(chat_id, result)
-                if 'SUCCESS' in result:
+                if 'SUCCESS' in tag:
                     try:
                         with open('robot/like-robot.jpg', 'rb') as photo:
                             self.bot.send_photo(chat_id, photo)
@@ -107,7 +107,7 @@ class IBotLog:
             try:
                 chat_id = message.chat.id
                 project_name = message.text.split(' ', 1)[1]
-                result = self.log_monitor.check_logs(project_name)
+                tag, result = self.log_monitor.check_logs(project_name)
                 if not result:
                     logging.error('Ошибка мониторщик логов не отработал')
                     raise ValueError
@@ -125,7 +125,7 @@ class IBotLog:
                     text=result,
                     reply_markup=keyboard
                 )
-                if 'SUCCESS' in result:
+                if 'SUCCESS' in tag:
                     try:
                         with open('robot/like-robot.jpg', 'rb') as photo:
                             self.bot.send_photo(chat_id=chat_id, photo=photo)
