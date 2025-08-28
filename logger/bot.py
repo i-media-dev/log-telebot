@@ -1,26 +1,38 @@
 import logging
+import os
 
 from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.triggers.cron import CronTrigger
 from telebot import TeleBot, types
+
+from dotenv import load_dotenv
 
 from logger.constants import PROJECTS
 from logger.logging_config import setup_logging
 from logger.utils import LogMonitor
 
 setup_logging()
+load_dotenv()
 
 
 class IBotLog:
     """Класс управления телеграм-ботом."""
 
-    def __init__(self, token: str, log_monitor=None):
+    def __init__(self, token: str, group_id=os.getenv('GROUP_ID'), log_monitor=None):
         self.log_monitor = log_monitor or LogMonitor()
         self.bot = TeleBot(token)
+        self.group_id = group_id
         self.scheduler = BackgroundScheduler()
         self.active_users = set()
         self.setup_handlers()
         self.setup_daily_checks()
+
+    def _get_robot(self, robot, chat_id):
+        try:
+            with open(f'robot/{robot}', 'rb') as photo:
+                self.bot.send_photo(chat_id, photo)
+        except FileNotFoundError:
+            logging.warning(f'Робот {robot} не найден')
 
     def setup_daily_checks(self):
         for project_name, project_config in PROJECTS.items():
@@ -40,46 +52,45 @@ class IBotLog:
 
     def send_project_report(self, project_name: str):
         tag, result = self.log_monitor.check_logs(project_name)
+        self.active_users.add(self.group_id)
         for chat_id in list(self.active_users):
             try:
                 self.bot.send_message(chat_id, result)
                 if 'SUCCESS' in tag:
-                    try:
-                        with open('robot/like-robot.jpg', 'rb') as photo:
-                            self.bot.send_photo(chat_id, photo)
-                    except FileNotFoundError:
-                        logging.warning('Робот like-robot не найден')
+                    self._get_robot('like-robot.jpg', chat_id)
                 else:
-                    try:
-                        with open('robot/disslike-robot.png', 'rb') as photo:
-                            self.bot.send_photo(chat_id, photo)
-                    except FileNotFoundError:
-                        logging.warning('Робот disslike-robot не найден')
+                    self._get_robot('disslike-robor.png', chat_id)
             except Exception as e:
-                logging.error(f'Пользователь {chat_id} недоступен: {e}')
-                self.active_users.discard(chat_id)
+                if chat_id != self.group_id:
+                    self.active_users.discard(chat_id)
+                    logging.error(f'Пользователь {chat_id} недоступен: {e}')
+                else:
+                    logging.error('Группа недоступна')
 
     def setup_handlers(self):
         @self.bot.message_handler(commands=['start'])
         def wake_up(message):
             chat = message.chat
             chat_id = chat.id
+            chat_type = chat.type
             self.active_users.add(chat_id)
             name = chat.first_name
             keyboard = types.ReplyKeyboardMarkup(resize_keyboard=True)
             button_check = types.KeyboardButton('/logs')
             keyboard.add(button_check)
-
-            self.bot.send_message(
-                chat_id=chat_id,
-                text=f'Привет, я i-bot! Спасибо, что включил меня, {name}!',
-                reply_markup=keyboard
-            )
-            try:
-                with open('robot/hi-robot.jpg', 'rb') as photo:
-                    self.bot.send_photo(chat_id=chat_id, photo=photo)
-            except FileNotFoundError:
-                logging.warning('Робот hi-robot не найден')
+            if chat_type in ['group', 'supergroup']:
+                self.bot.send_message(
+                    chat_id=chat_id,
+                    text=f'Привет всем, я i-bot! Спасибо, что включили меня!',
+                    reply_markup=keyboard
+                )
+            else:
+                self.bot.send_message(
+                    chat_id=chat_id,
+                    text=f'Привет, я i-bot! Спасибо, что включил меня, {name}!',
+                    reply_markup=keyboard
+                )
+            self._get_robot('hi-robot.jpg', chat_id)
 
         @self.bot.message_handler(commands=['logs'])
         def check_project(message):
