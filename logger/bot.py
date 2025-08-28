@@ -18,7 +18,12 @@ load_dotenv()
 class IBotLog:
     """Класс управления телеграм-ботом."""
 
-    def __init__(self, token: str, group_id=os.getenv('GROUP_ID'), log_monitor=None):
+    def __init__(
+        self,
+        token: str,
+        group_id=os.getenv('GROUP_ID'),
+        log_monitor=None
+    ):
         self.log_monitor = log_monitor or LogMonitor()
         self.bot = TeleBot(token)
         self.group_id = group_id
@@ -81,13 +86,15 @@ class IBotLog:
             if chat_type in ['group', 'supergroup']:
                 self.bot.send_message(
                     chat_id=chat_id,
-                    text=f'Привет всем, я i-bot! Спасибо, что включили меня!',
+                    text='Привет всем, я i-bot! Спасибо, что включили меня!',
                     reply_markup=keyboard
                 )
             else:
                 self.bot.send_message(
                     chat_id=chat_id,
-                    text=f'Привет, я i-bot! Спасибо, что включил меня, {name}!',
+                    text=(
+                        f'Привет, я i-bot! Спасибо, что включил меня, {name}!'
+                    ),
                     reply_markup=keyboard
                 )
             self._get_robot('hi-robot.jpg', chat_id)
