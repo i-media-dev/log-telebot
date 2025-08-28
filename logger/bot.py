@@ -12,6 +12,7 @@ setup_logging()
 
 
 class IBotLog:
+    """Класс управления телеграм-ботом."""
 
     def __init__(self, token: str, log_monitor=None):
         self.log_monitor = log_monitor or LogMonitor()
