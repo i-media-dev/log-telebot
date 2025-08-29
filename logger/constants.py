@@ -18,6 +18,10 @@ PROJECTS = {
     'citilink_feed_handler': {
         'log_path': os.getenv('LOG_PATH_CITILINK'),
         'check_time': '07:30',
-    }
+    },
+    'auchan_feed_handler': {
+        'log_path': os.getenv('LOG_PATH_AUCHAN'),
+        'check_time': '07:30',
+    },
 }
 """Константа, содержащая настройки существующих проектов."""
