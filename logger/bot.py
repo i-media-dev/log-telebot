@@ -6,9 +6,16 @@ from apscheduler.triggers.cron import CronTrigger
 from telebot import TeleBot, types
 from dotenv import load_dotenv
 
-from logger.constants import PROJECTS
+from logger.constants import (
+    DEPLOY_ROBOT,
+    DISSLIKE_ROBOT,
+    HI_ROBOT,
+    LIKE_ROBOT,
+    PROJECTS
+)
 from logger.logging_config import setup_logging
 from logger.utils import LogMonitor
+from logger.webhook import WebhookManager
 
 setup_logging()
 load_dotenv()
@@ -38,6 +45,18 @@ class IBotLog:
         except FileNotFoundError:
             logging.warning(f'Робот {robot} не найден')
 
+    def _send_message(self, chat_id, message_str, keyboard=None):
+        try:
+            self.bot.send_message(
+                chat_id=chat_id,
+                text=message_str,
+                reply_markup=keyboard
+            )
+            logging.info(f'Сообщение отправлено получателю {chat_id}')
+        except Exception as e:
+            logging.error(f'Ошибка при отправке сообщения: {e}')
+            raise
+
     def setup_daily_checks(self):
         for project_name, project_config in PROJECTS.items():
             check_time = project_config.get('check_time', '09:00')
@@ -61,9 +80,10 @@ class IBotLog:
             try:
                 self.bot.send_message(chat_id, result)
                 if 'SUCCESS' in tag:
-                    self._get_robot('like-robot.jpg', chat_id)
+                    self._get_robot(LIKE_ROBOT, chat_id)
                 else:
-                    self._get_robot('disslike-robor.png', chat_id)
+                    self._get_robot(DISSLIKE_ROBOT, chat_id)
+                logging.info(f'Отчет отправлен пользователю {chat_id}')
             except Exception as e:
                 if chat_id != self.group_id:
                     self.active_users.discard(chat_id)
@@ -82,21 +102,15 @@ class IBotLog:
             keyboard = types.ReplyKeyboardMarkup(resize_keyboard=True)
             button_check = types.KeyboardButton('/logs')
             keyboard.add(button_check)
+            message_str = 'Привет всем, я i-bot! Спасибо, что включили меня!'
             if chat_type in ['group', 'supergroup']:
-                self.bot.send_message(
-                    chat_id=chat_id,
-                    text='Привет всем, я i-bot! Спасибо, что включили меня!',
-                    reply_markup=keyboard
-                )
+                self._send_message(chat_id, message_str, keyboard)
             else:
-                self.bot.send_message(
-                    chat_id=chat_id,
-                    text=(
-                        f'Привет, я i-bot! Спасибо, что включил меня, {name}!'
-                    ),
-                    reply_markup=keyboard
+                message_str = (
+                    f'Привет, я i-bot! Спасибо, что включил меня, {name}!'
                 )
-            self._get_robot('hi-robot.jpg', chat_id)
+                self._send_message(chat_id, message_str, keyboard)
+            self._get_robot(HI_ROBOT, chat_id)
 
         @self.bot.message_handler(commands=['logs'])
         def check_project(message):
@@ -110,12 +124,8 @@ class IBotLog:
                     keyboard.add(types.KeyboardButton(f'/check {project_key}'))
                 back_button = types.KeyboardButton('/back')
                 keyboard.add(back_button)
-
-                self.bot.send_message(
-                    chat_id=chat_id,
-                    text='Выбери проект для проверки логов:',
-                    reply_markup=keyboard
-                )
+                message_str = 'Выбери проект для проверки логов:'
+                self._send_message(chat_id, message_str, keyboard)
             except Exception as e:
                 logging.error(f'Ошибка {e}')
 
@@ -136,24 +146,11 @@ class IBotLog:
                     keyboard.add(types.KeyboardButton(f'/check {project_key}'))
                 back_button = types.KeyboardButton('/back')
                 keyboard.add(back_button)
-
-                self.bot.send_message(
-                    chat_id=chat_id,
-                    text=result,
-                    reply_markup=keyboard
-                )
+                self._send_message(chat_id, result, keyboard)
                 if 'SUCCESS' in tag:
-                    try:
-                        with open('robot/like-robot.jpg', 'rb') as photo:
-                            self.bot.send_photo(chat_id=chat_id, photo=photo)
-                    except FileNotFoundError:
-                        logging.warning('Робот like-robot не найден')
+                    self._get_robot(LIKE_ROBOT, chat_id)
                 else:
-                    try:
-                        with open('robot/disslike-robot.png', 'rb') as photo:
-                            self.bot.send_photo(chat_id=chat_id, photo=photo)
-                    except FileNotFoundError:
-                        logging.warning('Робот disslike-robot не найден')
+                    self._get_robot(DISSLIKE_ROBOT, chat_id)
             except Exception as e:
                 logging.error(f'Ошибка {e}')
 
@@ -165,12 +162,8 @@ class IBotLog:
                 keyboard = types.ReplyKeyboardMarkup(resize_keyboard=True)
                 button_check = types.KeyboardButton('/logs')
                 keyboard.add(button_check)
-
-                self.bot.send_message(
-                    chat_id=chat_id,
-                    text='Главное меню:',
-                    reply_markup=keyboard
-                )
+                message_str = 'Главное меню:'
+                self._send_message(chat_id, message_str, keyboard)
             except Exception as e:
                 logging.error(f'Ошибка {e}')
 
@@ -178,31 +171,31 @@ class IBotLog:
             func=lambda m: m.text and m.text.startswith('DEPLOY')
         )
         def deploy_success(message):
+            chat_id = message.chat.id
             full_text = message.text
             project_name = 'проекта'
+            message_str = f'✅ Деплой {project_name} успешно выполнен!'
             if full_text.split()[1] in PROJECTS:
                 project_name = full_text.split()[1]
-            try:
-                with open('robot/deploy-robot.png', 'rb') as photo:
-                    self.bot.send_photo(chat_id=message.chat.id, photo=photo)
-            except FileNotFoundError:
-                logging.warning('Робот deploy-robot не найден')
-            self.bot.send_message(
-                chat_id=message.chat.id,
-                text=f'✅ Деплой {project_name} успешно выполнен!'
-            )
-            for chat_id in self.active_users:
-                if chat_id != message.chat.id:
-                    try:
-                        with open('robot/deploy-robot.png', 'rb') as photo:
-                            self.bot.send_photo(chat_id=chat_id, photo=photo)
-                    except FileNotFoundError:
-                        logging.warning('Робот deploy-robot не найден')
+            self._send_message(chat_id, message_str)
+            self._get_robot(DEPLOY_ROBOT, chat_id)
 
-                    self.bot.send_message(
-                        chat_id=chat_id,
-                        text=f'✅ Деплой {project_name} успешно выполнен!'
-                    )
+            for user_id in self.active_users:
+                if user_id != chat_id:
+                    self._send_message(user_id, message_str)
+                    self._get_robot(DEPLOY_ROBOT, user_id)
 
-    def run(self):
+    def run_webhook(self):
+        """Запуск с webhook"""
+        logging.info('Бот запущен через webhook')
+        webhook_manager = WebhookManager(
+            bot=self.bot,
+            host=os.getenv('WEBHOOK_HOST'),
+            port=int(os.getenv('WEBHOOK_PORT', 5000))
+        )
+        webhook_manager.start()
+
+    def run_polling(self):
+        """Запуск с polling"""
+        logging.info('Бот запущен через polling')
         self.bot.polling()

@@ -4,6 +4,11 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+HI_ROBOT = 'hi-robot.png'
+LIKE_ROBOT = 'like-robot.jpg'
+DISSLIKE_ROBOT = 'disslike-robot.png'
+DEPLOY_ROBOT = 'deploy-robot.png'
+
 
 PROJECTS = {
     'wb_parser': {
