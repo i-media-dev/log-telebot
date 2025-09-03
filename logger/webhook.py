@@ -31,14 +31,17 @@ class WebhookManager:
             return 'OK'
 
     def _setup_webhook(self):
+        webhook_url = f'https://{self.host}/{self.bot.token}/'
         try:
-            self.bot.remove_webhook()
-            webhook_url = f'https://{self.host}/{self.bot.token}/'
-            self.bot.set_webhook(url=webhook_url)
-            logging.info(f'Webhook установлен: {webhook_url}')
+            info = self.bot.get_webhook_info()
+            if info.url != webhook_url:
+                self.bot.remove_webhook()
+                self.bot.set_webhook(url=webhook_url)
+                logging.info(f'Webhook обновлён: {webhook_url}')
+            else:
+                logging.info(f'Webhook уже установлен: {webhook_url}')
         except Exception as e:
             logging.error(f'Ошибка установки webhook: {e}')
-            raise
 
     def get_app(self):
         """Метод для получения объекта Flask app для Gunicorn"""
