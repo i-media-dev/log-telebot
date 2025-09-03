@@ -72,12 +72,3 @@ jobs:
           docker compose -f docker-compose.yml pull
           docker compose -f docker-compose.yml down
           docker compose -f docker-compose.yml up -d
-  send_message:
-    runs-on: ubuntu-latest
-    needs: deploy
-    steps:
-      - name: Notify bot about deploy
-        run: |
-          curl -X POST https://tgbot.i-media.ru/trigger_deploy \
-            -H "Content-Type: application/json" \
-            -d '{"project": "log-telebot"}'
