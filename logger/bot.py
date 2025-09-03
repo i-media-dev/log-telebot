@@ -7,7 +7,6 @@ from telebot import TeleBot, types
 from dotenv import load_dotenv
 
 from logger.constants import (
-    DEPLOY_ROBOT,
     DISSLIKE_ROBOT,
     HI_ROBOT,
     LIKE_ROBOT,

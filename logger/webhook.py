@@ -40,7 +40,7 @@ class WebhookManager:
 
             message_str = f'✅ Деплой {project_name} успешно выполнен!'
             if project_name == 'log-telebot':
-                message_str = f'✌ Я обновился!'
+                message_str = '✌ Я обновился!'
 
             self.bot.send_message_str(os.getenv('TELEGRAM_TO'), message_str)
             self.bot.get_robot(DEPLOY_ROBOT, os.getenv('TELEGRAM_TO'))
