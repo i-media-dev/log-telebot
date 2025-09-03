@@ -14,12 +14,10 @@ class WebhookManager:
     def __init__(
         self,
         bot,
-        host: str = None,
-        port: int = 8443
+        host: str = None
     ):
         self.bot = bot
         self.host = host or os.getenv('WEBHOOK_HOST')
-        self.port = port or int(os.getenv('WEBHOOK_PORT'))
         self.app = Flask(__name__)
         self._setup_routes()
         self._setup_webhook()
@@ -35,7 +33,7 @@ class WebhookManager:
     def _setup_webhook(self):
         try:
             self.bot.remove_webhook()
-            webhook_url = f'https://{self.host}:{self.port}/{self.bot.token}/'
+            webhook_url = f'https://{self.host}/{self.bot.token}/'
             self.bot.set_webhook(url=webhook_url)
             logging.info(f'Webhook установлен: {webhook_url}')
         except Exception as e:
@@ -45,6 +43,3 @@ class WebhookManager:
     def get_app(self):
         """Метод для получения объекта Flask app для Gunicorn"""
         return self.app
-
-    def start(self):
-        self.app.run(host='0.0.0.0', port=self.port)

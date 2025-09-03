@@ -15,7 +15,6 @@ from logger.constants import (
 )
 from logger.logging_config import setup_logging
 from logger.utils import LogMonitor
-from logger.webhook import WebhookManager
 
 setup_logging()
 load_dotenv()
@@ -184,18 +183,3 @@ class IBotLog:
                 if user_id != chat_id:
                     self._send_message(user_id, message_str)
                     self._get_robot(DEPLOY_ROBOT, user_id)
-
-    def run_webhook(self):
-        """Запуск с webhook"""
-        logging.info('Бот запущен через webhook')
-        webhook_manager = WebhookManager(
-            bot=self.bot,
-            host=os.getenv('WEBHOOK_HOST'),
-            port=int(os.getenv('WEBHOOK_PORT', 5000))
-        )
-        webhook_manager.start()
-
-    def run_polling(self):
-        """Запуск с polling"""
-        logging.info('Бот запущен через polling')
-        self.bot.polling()

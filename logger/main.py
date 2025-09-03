@@ -1,20 +1,14 @@
 import os
-
 from dotenv import load_dotenv
-
 from logger.bot import IBotLog
+from logger.webhook import WebhookManager
 
 load_dotenv()
 
+bot = IBotLog(os.getenv('TELEGRAM_TOKEN'))
+webhook_manager = WebhookManager(
+    bot=bot,
+    host=os.getenv('WEBHOOK_HOST')
+)
 
-def main():
-    bot = IBotLog(os.getenv('TELEGRAM_TOKEN'))
-
-    if os.getenv('USE_WEBHOOK').lower() == 'true':
-        bot.run_webhook()
-    else:
-        bot.run_polling()
-
-
-if __name__ == '__main__':
-    main()
+app = webhook_manager.get_app()
