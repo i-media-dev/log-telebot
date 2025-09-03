@@ -30,7 +30,7 @@ class WebhookManager:
         def webhook():
             json_string = request.get_data().decode('utf-8')
             update = types.Update.de_json(json_string)
-            self.bot.process_new_updates([update])
+            self.telebot.process_new_updates([update])
             return 'OK'
 
         @self.app.route('/trigger_deploy', methods=['POST'])
