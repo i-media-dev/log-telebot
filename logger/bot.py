@@ -29,6 +29,7 @@ class IBotLog:
         group_id=os.getenv('GROUP_ID'),
         log_monitor=None
     ):
+        self.token = token
         self.log_monitor = log_monitor or LogMonitor()
         self.bot = TeleBot(token)
         self.group_id = group_id
