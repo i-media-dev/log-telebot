@@ -38,14 +38,14 @@ class IBotLog:
         self.setup_handlers()
         self.setup_daily_checks()
 
-    def _get_robot(self, robot, chat_id):
+    def get_robot(self, robot, chat_id):
         try:
             with open(f'robot/{robot}', 'rb') as photo:
                 self.bot.send_photo(chat_id, photo)
         except FileNotFoundError:
             logging.warning(f'Робот {robot} не найден')
 
-    def _send_message(self, chat_id, message_str, keyboard=None):
+    def send_message_str(self, chat_id, message_str, keyboard=None):
         try:
             self.bot.send_message(
                 chat_id=chat_id,
@@ -80,9 +80,9 @@ class IBotLog:
             try:
                 self.bot.send_message(chat_id, result)
                 if 'SUCCESS' in tag:
-                    self._get_robot(LIKE_ROBOT, chat_id)
+                    self.get_robot(LIKE_ROBOT, chat_id)
                 else:
-                    self._get_robot(DISSLIKE_ROBOT, chat_id)
+                    self.get_robot(DISSLIKE_ROBOT, chat_id)
                 logging.info(f'Отчет отправлен пользователю {chat_id}')
             except Exception as e:
                 if chat_id != self.group_id:
@@ -104,13 +104,13 @@ class IBotLog:
             keyboard.add(button_check)
             message_str = 'Привет всем, я i-bot! Спасибо, что включили меня!'
             if chat_type in ['group', 'supergroup']:
-                self._send_message(chat_id, message_str, keyboard)
+                self.send_message_str(chat_id, message_str, keyboard)
             else:
                 message_str = (
                     f'Привет, я i-bot! Спасибо, что включил меня, {name}!'
                 )
-                self._send_message(chat_id, message_str, keyboard)
-            self._get_robot(HI_ROBOT, chat_id)
+                self.send_message_str(chat_id, message_str, keyboard)
+            self.get_robot(HI_ROBOT, chat_id)
 
         @self.bot.message_handler(commands=['logs'])
         def check_project(message):
@@ -125,7 +125,7 @@ class IBotLog:
                 back_button = types.KeyboardButton('/back')
                 keyboard.add(back_button)
                 message_str = 'Выбери проект для проверки логов:'
-                self._send_message(chat_id, message_str, keyboard)
+                self.send_message_str(chat_id, message_str, keyboard)
             except Exception as e:
                 logging.error(f'Ошибка {e}')
 
@@ -146,11 +146,11 @@ class IBotLog:
                     keyboard.add(types.KeyboardButton(f'/check {project_key}'))
                 back_button = types.KeyboardButton('/back')
                 keyboard.add(back_button)
-                self._send_message(chat_id, result, keyboard)
+                self.send_message_str(chat_id, result, keyboard)
                 if 'SUCCESS' in tag:
-                    self._get_robot(LIKE_ROBOT, chat_id)
+                    self.get_robot(LIKE_ROBOT, chat_id)
                 else:
-                    self._get_robot(DISSLIKE_ROBOT, chat_id)
+                    self.get_robot(DISSLIKE_ROBOT, chat_id)
             except Exception as e:
                 logging.error(f'Ошибка {e}')
 
@@ -163,24 +163,6 @@ class IBotLog:
                 button_check = types.KeyboardButton('/logs')
                 keyboard.add(button_check)
                 message_str = 'Главное меню:'
-                self._send_message(chat_id, message_str, keyboard)
+                self.send_message_str(chat_id, message_str, keyboard)
             except Exception as e:
                 logging.error(f'Ошибка {e}')
-
-        @self.bot.message_handler(
-            func=lambda m: m.text and m.text.startswith('DEPLOY')
-        )
-        def deploy_success(message):
-            chat_id = message.chat.id
-            full_text = message.text
-            project_name = 'проекта'
-            message_str = f'✅ Деплой {project_name} успешно выполнен!'
-            if full_text.split()[1] in PROJECTS:
-                project_name = full_text.split()[1]
-            self._send_message(chat_id, message_str)
-            self._get_robot(DEPLOY_ROBOT, chat_id)
-
-            for user_id in self.active_users:
-                if user_id != chat_id:
-                    self._send_message(user_id, message_str)
-                    self._get_robot(DEPLOY_ROBOT, user_id)

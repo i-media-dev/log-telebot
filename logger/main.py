@@ -9,7 +9,8 @@ load_dotenv()
 
 bot = IBotLog(os.getenv('TELEGRAM_TOKEN'))
 webhook_manager = WebhookManager(
-    bot=bot.bot,
+    bot=bot,
+    telebot=bot.bot,
     host=os.getenv('WEBHOOK_HOST')
 )
 
