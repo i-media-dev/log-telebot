@@ -5,6 +5,9 @@ services:
     image: imediadev/log-telebot
     user: "1002:1002"
     env_file: .env
+    ports:
+      - 8000:8000
+    restart: unless-stopped
     volumes:
       - ./logs:/app/logs
       - /home/egor/project/wb/logs:/home/egor/project/wb/logs

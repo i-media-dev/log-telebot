@@ -1,5 +1,4 @@
 import logging
-import ssl
 
 from flask import Flask, request
 from telebot import types
@@ -16,15 +15,11 @@ class WebhookManager:
         self,
         bot,
         host: str = None,
-        port: int = 8443,
-        ssl_cert_path: str = None,
-        ssl_key_path: str = None
+        port: int = 8443
     ):
         self.bot = bot
         self.host = host or os.getenv('WEBHOOK_HOST')
         self.port = port or int(os.getenv('WEBHOOK_PORT'))
-        self.ssl_cert_path = ssl_cert_path or os.getenv('SSL_CERT_PATH')
-        self.ssl_key_path = ssl_key_path or os.getenv('SSL_KEY_PATH')
         self.app = Flask(__name__)
         self._setup_routes()
         self._setup_webhook()
@@ -47,8 +42,9 @@ class WebhookManager:
             logging.error(f'Ошибка установки webhook: {e}')
             raise
 
+    def get_app(self):
+        """Метод для получения объекта Flask app для Gunicorn"""
+        return self.app
+
     def start(self):
-        ssl_context = None
-        if self.ssl_cert_path and self.ssl_key_path:
-            ssl_context = (self.ssl_cert_path, self.ssl_key_path)
         self.app.run(host='0.0.0.0', port=self.port)
