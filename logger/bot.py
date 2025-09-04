@@ -68,6 +68,8 @@ class IBotLog:
 
     def send_project_report(self, project_name: str):
         tag, result = self.log_monitor.check_logs(project_name)
+        if 'WARNING' in tag:
+            return
         self.active_users.add(self.group_id)
         for chat_id in list(self.active_users):
             try:
