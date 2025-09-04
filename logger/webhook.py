@@ -38,13 +38,15 @@ class WebhookManager:
             data = request.json
             project_name = data.get('project', 'проекта')
             message_str = f'✅ Деплой {project_name} успешно выполнен!'
+            group_id = int(data.get('telegram_to'))
 
-            self.bot.send_message_str(os.getenv('TELEGRAM_TO'), message_str)
-            self.bot.get_robot(DEPLOY_ROBOT, os.getenv('TELEGRAM_TO'))
+            self.bot.send_message_str(group_id, message_str)
+            self.bot.get_robot(DEPLOY_ROBOT, group_id)
 
             for user_id in self.bot.active_users:
                 self.bot.send_message_str(user_id, message_str)
                 self.bot.get_robot(DEPLOY_ROBOT, user_id)
+
             return 'OK'
 
     def _setup_webhook(self):
