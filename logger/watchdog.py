@@ -10,7 +10,7 @@ class LogFileHandler(FileSystemEventHandler):
         self.projects = projects
         self.log_dir_to_project = {}
         for project_name, config in projects.items():
-            log_dir = config['log_dir']
+            log_dir = config['log_path']
             self.log_dir_to_project[log_dir] = project_name
 
     def on_closed(self, event):
