@@ -1,5 +1,6 @@
 import logging
 import os
+import threading
 
 from telebot import TeleBot, types
 from dotenv import load_dotenv
@@ -64,7 +65,10 @@ class IBotLog:
             log_dir = project_config['log_dir']
             observer.schedule(event_handler, log_dir, recursive=False)
 
-        observer.start()
+        watchdog_thread = threading.Thread(target=observer.start)
+        watchdog_thread.daemon = True
+        watchdog_thread.start()
+
         self.log_observer = observer
 
     def send_project_report(self, project_name: str):
