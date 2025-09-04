@@ -1,10 +1,9 @@
 import logging
 import os
 
-from apscheduler.schedulers.background import BackgroundScheduler
-from apscheduler.triggers.cron import CronTrigger
 from telebot import TeleBot, types
 from dotenv import load_dotenv
+from watchdog.observers import Observer
 
 from logger.constants import (
     DISSLIKE_ROBOT,
@@ -14,6 +13,7 @@ from logger.constants import (
 )
 from logger.logging_config import setup_logging
 from logger.utils import LogMonitor
+from logger.watchdog import LogFileHandler
 
 setup_logging()
 load_dotenv()
@@ -32,10 +32,10 @@ class IBotLog:
         self.log_monitor = log_monitor or LogMonitor()
         self.bot = TeleBot(token)
         self.group_id = group_id
-        self.scheduler = BackgroundScheduler()
         self.active_users = set()
+        self.log_observer = None
         self.setup_handlers()
-        self.setup_daily_checks()
+        self.setup_file_watcher()
 
     def get_robot(self, robot, chat_id):
         try:
@@ -56,32 +56,27 @@ class IBotLog:
             logging.error(f'Ошибка при отправке сообщения: {e}')
             raise
 
-    def setup_daily_checks(self):
-        for project_name, project_config in PROJECTS.items():
-            check_time = project_config.get('check_time', '09:00')
-            hour, minute = map(int, check_time.split(':'))
-            self.scheduler.add_job(
-                self.send_project_report,
-                trigger=CronTrigger(
-                    hour=hour,
-                    minute=minute,
-                    timezone='Europe/Moscow'
-                ),
-                args=[project_name],
-                id=f'check_{project_name}'
-            )
-        self.scheduler.start()
+    def setup_file_watcher(self):
+        observer = Observer()
+        event_handler = LogFileHandler(self)
+
+        for project_config in PROJECTS.values():
+            log_dir = project_config['log_dir']
+            observer.schedule(event_handler, log_dir, recursive=False)
+
+        observer.start()
+        self.log_observer = observer
 
     def send_project_report(self, project_name: str):
         tag, result = self.log_monitor.check_logs(project_name)
         self.active_users.add(self.group_id)
         for chat_id in list(self.active_users):
             try:
-                self.send_message_str(chat_id, result)
                 if 'SUCCESS' in tag:
                     self.get_robot(LIKE_ROBOT, chat_id)
                 else:
                     self.get_robot(DISSLIKE_ROBOT, chat_id)
+                self.send_message_str(chat_id, result)
                 logging.info(f'Отчет отправлен пользователю {chat_id}')
             except Exception as e:
                 if chat_id != self.group_id:
@@ -102,6 +97,7 @@ class IBotLog:
             button_check = types.KeyboardButton('/logs')
             keyboard.add(button_check)
             message_str = 'Привет всем, я i-bot! Спасибо, что включили меня!'
+            self.get_robot(HI_ROBOT, chat_id)
             if chat_type in ['group', 'supergroup']:
                 self.send_message_str(chat_id, message_str, keyboard)
             else:
@@ -109,7 +105,6 @@ class IBotLog:
                     f'Привет, я i-bot! Спасибо, что включил меня, {name}!'
                 )
                 self.send_message_str(chat_id, message_str, keyboard)
-            self.get_robot(HI_ROBOT, chat_id)
 
         @self.bot.message_handler(commands=['logs'])
         def check_project(message):
@@ -145,11 +140,11 @@ class IBotLog:
                     keyboard.add(types.KeyboardButton(f'/check {project_key}'))
                 back_button = types.KeyboardButton('/back')
                 keyboard.add(back_button)
-                self.send_message_str(chat_id, result, keyboard)
                 if 'SUCCESS' in tag:
                     self.get_robot(LIKE_ROBOT, chat_id)
                 else:
                     self.get_robot(DISSLIKE_ROBOT, chat_id)
+                self.send_message_str(chat_id, result, keyboard)
             except Exception as e:
                 logging.error(f'Ошибка {e}')
 
