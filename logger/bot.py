@@ -40,7 +40,7 @@ class IBotLog:
     def get_robot(self, robot, chat_id):
         try:
             with open(f'robot/{robot}', 'rb') as photo:
-                self.bot.send_photo(chat_id, photo)
+                self.bot.send_sticker(chat_id, photo)
         except FileNotFoundError:
             logging.warning(f'Робот {robot} не найден')
 
