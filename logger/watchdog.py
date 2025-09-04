@@ -22,9 +22,10 @@ class LogFileHandler(FileSystemEventHandler):
             current_time = time.time()
             file_path = event.src_path
 
-            if (file_path in self.last_processed and
-                    current_time - self.last_processed[file_path] < 30):
-                return
+            if file_path in self.last_processed:
+                time_since_last = current_time - self.last_processed[file_path]
+                if time_since_last < 30:
+                    return
 
             project_name = self._get_project_from_event(event)
             if project_name:
