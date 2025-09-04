@@ -62,7 +62,7 @@ class IBotLog:
         event_handler = LogFileHandler(self)
 
         for project_config in PROJECTS.values():
-            log_dir = project_config['log_dir']
+            log_dir = project_config['log_path']
             observer.schedule(event_handler, log_dir, recursive=False)
 
         watchdog_thread = threading.Thread(target=observer.start)
