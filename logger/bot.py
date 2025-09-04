@@ -77,7 +77,7 @@ class IBotLog:
         self.active_users.add(self.group_id)
         for chat_id in list(self.active_users):
             try:
-                self.bot.send_message(chat_id, result)
+                self.send_message_str(chat_id, result)
                 if 'SUCCESS' in tag:
                     self.get_robot(LIKE_ROBOT, chat_id)
                 else:
