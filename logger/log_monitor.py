@@ -3,6 +3,7 @@ import os
 from datetime import datetime as dt
 
 from dotenv import load_dotenv
+
 from logger.constants import PROJECTS
 from logger.logging_config import setup_logging
 

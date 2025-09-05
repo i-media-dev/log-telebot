@@ -2,6 +2,7 @@ import os
 import threading
 
 from dotenv import load_dotenv
+
 from logger.bot import IBotLog
 from logger.poller import Poller
 from logger.webhook import WebhookManager
