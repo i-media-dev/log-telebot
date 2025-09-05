@@ -3,17 +3,14 @@ import os
 
 from telebot import TeleBot, types
 from dotenv import load_dotenv
-from watchdog.observers import Observer
-
 from logger.constants import (
     DISSLIKE_ROBOT,
     HI_ROBOT,
     LIKE_ROBOT,
     PROJECTS
 )
-from logger.logging_config import setup_logging
 from logger.log_monitor import LogMonitor
-from logger.watchfile import LogFileHandler
+from logger.logging_config import setup_logging
 
 setup_logging()
 load_dotenv()
@@ -35,7 +32,6 @@ class IBotLog:
         self.active_users = set()
         self.log_observer = None
         self.setup_handlers()
-        self.setup_file_watcher()
 
     def get_robot(self, robot, chat_id):
         try:
@@ -55,16 +51,6 @@ class IBotLog:
         except Exception as e:
             logging.error(f'Ошибка при отправке сообщения: {e}')
             raise
-
-    def setup_file_watcher(self):
-        self.log_observer = Observer()
-        event_handler = LogFileHandler(self)
-
-        for project_config in PROJECTS.values():
-            log_dir = project_config['log_path']
-            self.log_observer.schedule(event_handler, log_dir, recursive=False)
-
-        self.log_observer.start()
 
     def send_project_report(self, project_name: str):
         tag, result = self.log_monitor.check_logs(project_name)

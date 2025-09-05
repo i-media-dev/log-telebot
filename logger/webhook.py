@@ -1,9 +1,8 @@
 import logging
+import os
+from telebot import types
 
 from flask import Flask, request
-from telebot import types
-import os
-
 from logger.constants import DEPLOY_ROBOT
 from logger.logging_config import setup_logging
 
