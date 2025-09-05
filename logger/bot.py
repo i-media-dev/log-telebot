@@ -12,8 +12,8 @@ from logger.constants import (
     PROJECTS
 )
 from logger.logging_config import setup_logging
-from logger.utils import LogMonitor
-from logger.watchdog import LogFileHandler
+from logger.log_monitor import LogMonitor
+from logger.watchfile import LogFileHandler
 
 setup_logging()
 load_dotenv()
