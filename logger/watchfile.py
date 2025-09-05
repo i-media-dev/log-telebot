@@ -49,7 +49,10 @@ class LogFileHandler(FileSystemEventHandler):
             self.debounce_timers[file_path].cancel()
 
         timer = threading.Timer(
-            self.DEBOUNCE_SECONDS, self._process_file, args=(file_path, project_name))
+            self.DEBOUNCE_SECONDS,
+            self._process_file,
+            args=(file_path, project_name)
+        )
         self.debounce_timers[file_path] = timer
         timer.start()
 
