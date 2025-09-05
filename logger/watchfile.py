@@ -1,13 +1,8 @@
-import logging
 import os
-import time
 
 from watchdog.events import FileSystemEventHandler
 
 from logger.constants import PROJECTS
-from logger.logging_config import setup_logging
-
-setup_logging()
 
 
 class LogFileHandler(FileSystemEventHandler):

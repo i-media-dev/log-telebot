@@ -16,7 +16,11 @@ class LogMonitor:
     def __init__(self, projects: dict[str, str] = PROJECTS):
         self.projects = projects
 
-    def check_logs(self, project_name: str, last_run_ids: dict) -> tuple[str, str, str]:
+    def check_logs(
+        self,
+        project_name: str,
+        last_run_ids: dict
+    ) -> tuple[str, str, str]:
         """Проверка логов проекта."""
         today = dt.now().strftime('%Y-%m-%d')
         project = self.projects[project_name]
