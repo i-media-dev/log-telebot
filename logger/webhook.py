@@ -40,12 +40,13 @@ class WebhookManager:
             message_str = f'✅ Деплой {project_name} успешно выполнен!'
             group_id = int(data.get('telegram_to'))
 
-            self.bot.get_robot(DEPLOY_ROBOT, group_id)
-            self.bot.send_message_str(group_id, message_str)
+            if group_id not in self.bot.active_users:
+                self.bot.get_robot(DEPLOY_ROBOT, group_id)
+                self.bot.send_message_str(group_id, message_str)
 
             for user_id in self.bot.active_users:
-                self.bot.send_message_str(user_id, message_str)
                 self.bot.get_robot(DEPLOY_ROBOT, user_id)
+                self.bot.send_message_str(user_id, message_str)
 
             return 'OK'
 

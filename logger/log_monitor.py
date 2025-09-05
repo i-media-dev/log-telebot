@@ -16,18 +16,14 @@ class LogMonitor:
     def __init__(self, projects: dict[str, str] = PROJECTS):
         self.projects = projects
 
-    def check_logs(
-        self,
-        project_name: str,
-        last_run_ids: dict
-    ) -> tuple[str, str, str]:
+    def check_logs(self, project_name: str) -> tuple[str, str]:
         """Проверка логов проекта."""
         today = dt.now().strftime('%Y-%m-%d')
         project = self.projects[project_name]
         log_path = project['log_path']
         if not os.path.exists(log_path):
             message = f'❌ Файл лога не найден: {log_path}'
-            return 'NOTFOUND', message, None
+            return 'NOTFOUND', message
         try:
             for filename in os.listdir(log_path):
                 if today in filename:
@@ -45,15 +41,7 @@ class LogMonitor:
 
                         if 'ENDLOGGING=1' not in log_content:
                             message = 'Файл еще пишется'
-                            return 'PENDING', message, None
-                        run_id = None
-
-                        if 'RUN_ID' in log_content:
-                            run_id = log_content.split('RUN_ID=')[1].split()[0]
-
-                        if run_id and last_run_ids.get(project_name) == run_id:
-                            message = 'Отчёт уже отправлен'
-                            return 'DUPLICATE', message, run_id
+                            return 'PENDING', message
 
                         if 'SCRIPT_FINISHED_STATUS=SUCCESS' in log_content:
                             message = (
@@ -62,7 +50,7 @@ class LogMonitor:
                                 f'⏱️ Время выполнения: {exec_time} сек. '
                                 f'или {round(float(exec_time) / 60, 2)} мин.'
                             )
-                            return 'SUCCESS', message, run_id
+                            return 'SUCCESS', message
 
                         elif 'SCRIPT_FINISHED_STATUS=ERROR' in log_content:
                             error_type_match = 'ERROR_TYPE=' in log_content \
@@ -93,13 +81,13 @@ class LogMonitor:
                                 f'🚬 {error_message}\n'
                                 f'Функция, бросившая ошибку: {func_name}'
                             )
-                            return 'ERROR', message, run_id
+                            return 'ERROR', message
                         else:
                             message = 'Статус выполнения не определен'
-                            return 'WARNING', message, None
+                            return 'WARNING', message
             message = f'Сегодняшний лог для {project_name} не найден'
-            return 'ERROR', message, None
+            return 'ERROR', message
         except Exception as e:
             logging.error(f'Ошибка чтения лога: {e}')
             message = f'❌ Ошибка чтения лога: {str(e)}.'
-            return 'ERROR', message, None
+            return 'ERROR', message
