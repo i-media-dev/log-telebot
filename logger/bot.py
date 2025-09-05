@@ -69,7 +69,7 @@ class IBotLog:
     def send_project_report(self, project_name: str):
         tag, result = self.log_monitor.check_logs(project_name)
 
-        if tag in ['PENDING', 'WARNING', 'DUPLICATE']:
+        if tag in ['PENDING', 'WARNING', 'DUPLICATE', 'NOTFOUND']:
             return
 
         self.active_users.add(int(self.group_id))
