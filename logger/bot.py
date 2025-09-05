@@ -32,6 +32,7 @@ class IBotLog:
         self.log_monitor = log_monitor or LogMonitor()
         self.bot = TeleBot(token)
         self.group_id = group_id
+        self.last_run_ids = {}
         self.active_users = set()
         self.log_observer = None
         self.setup_handlers()
@@ -67,10 +68,17 @@ class IBotLog:
         self.log_observer.start()
 
     def send_project_report(self, project_name: str):
-        tag, result = self.log_monitor.check_logs(project_name)
-        if 'WARNING' in tag:
+        tag, result, run_id = self.log_monitor.check_logs(
+            project_name,
+            self.last_run_ids
+        )
+        if tag in ['PENDING', 'WARNING', 'DUPLICATE', 'NOTFOUND']:
             return
-        self.active_users.add(self.group_id)
+
+        if run_id:
+            self.last_run_ids[project_name] = run_id
+
+        self.active_users.add(int(self.group_id))
         for chat_id in list(self.active_users):
             logging.info(f'Активные пользователи: {list(self.active_users)}')
             try:
