@@ -59,7 +59,13 @@ class IBotLog:
         if tag in ['PENDING', 'WARNING', 'DUPLICATE', 'NOTFOUND']:
             return
 
-        self.active_users.add(int(self.group_id))
+        if 'SUCCESS' in tag:
+            self.get_robot(LIKE_ROBOT, self.group_id)
+        else:
+            self.get_robot(DISSLIKE_ROBOT, self.group_id)
+        self.send_message_str(self.group_id, result)
+        logging.info(f'Отчет отправлен группе {self.group_id}')
+
         for chat_id in list(self.active_users):
             logging.info(f'Активные пользователи: {list(self.active_users)}')
             try:
@@ -70,11 +76,8 @@ class IBotLog:
                 self.send_message_str(chat_id, result)
                 logging.info(f'Отчет отправлен пользователю {chat_id}')
             except Exception as e:
-                if chat_id != self.group_id:
-                    self.active_users.discard(chat_id)
-                    logging.error(f'Пользователь {chat_id} недоступен: {e}')
-                else:
-                    logging.error('Группа недоступна')
+                self.active_users.discard(chat_id)
+                logging.error(f'Пользователь {chat_id} недоступен: {e}')
 
     def setup_handlers(self):
         @self.bot.message_handler(commands=['start'])
