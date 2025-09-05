@@ -72,6 +72,7 @@ class IBotLog:
             return
         self.active_users.add(self.group_id)
         for chat_id in list(self.active_users):
+            logging.info(f'Активные пользователи: {list(self.active_users)}')
             try:
                 if 'SUCCESS' in tag:
                     self.get_robot(LIKE_ROBOT, chat_id)
