@@ -1,6 +1,5 @@
 import logging
 import os
-import threading
 
 from watchdog.events import FileSystemEventHandler
 
@@ -29,45 +28,38 @@ class LogFileHandler(FileSystemEventHandler):
         if not project_name:
             return
 
-        lock = self.processing.setdefault(project_name, threading.Lock())
-        if not lock.acquire(blocking=False):
+        try:
+            with open(event.src_path, 'r', encoding='utf-8') as f:
+                last_lines = f.readlines()[-30:]
+        except FileNotFoundError:
             return
 
-        try:
-            try:
-                with open(event.src_path, 'r', encoding='utf-8') as f:
-                    last_lines = f.readlines()[-30:]
-            except FileNotFoundError:
-                return
+        content = '\n'.join(last_lines)
 
-            content = '\n'.join(last_lines)
+        if 'ENDLOGGING=1' not in content:
+            logging.debug(f'Файл {event.src_path} ещё пишется')
+            return
+        run_id = None
+        for line in last_lines:
+            if 'RUN_ID=' in line:
+                run_id = line.split('RUN_ID=')[1].split(',')[0].strip()
+                break
 
-            if 'ENDLOGGING=1' not in content:
-                logging.debug(f'Файл {event.src_path} ещё пишется')
-                return
+        if not run_id:
+            logging.warning(f'В логе {event.src_path} нет RUN_ID')
+            return
 
-            run_id = None
-            for line in last_lines:
-                if 'RUN_ID=' in line:
-                    run_id = line.split('RUN_ID=')[1].split(',')[0].strip()
-                    break
+        prev = self.last_run_id.get(project_name)
+        if prev == run_id:
+            logging.debug(f'RUN_ID={run_id} для {project_name} уже обработан')
+            return
 
-            if not run_id:
-                logging.warning(f'В логе {event.src_path} нет RUN_ID')
-                return
+        if self.last_run_id.setdefault(project_name, run_id) != run_id:
+            logging.debug(f'RUN_ID={run_id} для {project_name} уже в работе')
+            return
 
-            if self.last_run_id.get(project_name) == run_id:
-                logging.debug(
-                    f'RUN_ID={run_id} для {project_name} уже обработан')
-                return
-
-            self.last_run_id[project_name] = run_id
-
-            logging.info(f'Готов новый отчёт: {project_name}, RUN_ID={run_id}')
-            self.bot.send_project_report(project_name)
-
-        finally:
-            lock.release()
+        logging.info(f'Готов новый отчёт: {project_name}, RUN_ID={run_id}')
+        self.bot.send_project_report(project_name)
 
     def _get_project_from_path(self, file_path: str):
         file_dir = os.path.dirname(file_path)
