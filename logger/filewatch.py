@@ -1,6 +1,6 @@
 import logging
 import os
-import threading
+from datetime import datetime as dt
 
 from watchdog.events import FileSystemEventHandler
 
@@ -11,7 +11,6 @@ setup_logging()
 
 
 class LogFileHandler(FileSystemEventHandler):
-    DEBOUNCE_SECONDS = 0.5
 
     def __init__(self, bot, projects: dict[str, dict] = PROJECTS):
         self.bot = bot
@@ -20,7 +19,6 @@ class LogFileHandler(FileSystemEventHandler):
             config['log_path']: name for name, config in projects.items()
         }
         self.last_run_id = {}
-        self.debounce_timers = {}
 
     def on_modified(self, event):
         if event.is_directory or not event.src_path.endswith('.log'):
@@ -30,22 +28,20 @@ class LogFileHandler(FileSystemEventHandler):
         if not project_name:
             return
 
-        if project_name in self.debounce_timers:
-            self.debounce_timers[project_name].cancel()
+        today_str = dt.now().strftime('%Y-%m-%d')
+        filename = os.path.basename(event.src_path)
 
-        timer = threading.Timer(
-            self.DEBOUNCE_SECONDS,
-            self.process_log,
-            args=(event.src_path, project_name)
-        )
-        self.debounce_timers[project_name] = timer
-        timer.start()
+        if today_str not in filename or 'cron' in filename.lower():
+            return
+
+        self.process_log(event.src_path, project_name)
 
     def process_log(self, file_path, project_name):
         try:
             with open(file_path, 'r', encoding='utf-8') as f:
                 lines = f.readlines()
         except FileNotFoundError:
+            logging.warning(f'Файл не найден: {file_path}')
             return
 
         run_id = None
@@ -62,6 +58,7 @@ class LogFileHandler(FileSystemEventHandler):
         if not run_id:
             logging.warning(f'В логе {file_path} нет RUN_ID')
             return
+
         if not end_logging_found:
             logging.info(f'Файл {file_path} ещё пишется')
             return
