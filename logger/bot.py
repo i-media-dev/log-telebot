@@ -59,15 +59,10 @@ class IBotLog:
         if tag in ['PENDING', 'WARNING', 'DUPLICATE', 'NOTFOUND']:
             return
 
-        if 'SUCCESS' in tag:
-            self.get_robot(LIKE_ROBOT, self.group_id)
-        else:
-            self.get_robot(DISSLIKE_ROBOT, self.group_id)
-        self.send_message_str(self.group_id, result)
-        logging.info(f'Отчет отправлен группе {self.group_id}')
-
-        for chat_id in list(self.active_users):
-            logging.info(f'Активные пользователи: {list(self.active_users)}')
+        self.active_users.add(self.group_id)
+        active_users_list = list(self.active_users)
+        for chat_id in active_users_list:
+            logging.info(f'Активные пользователи: {active_users_list}')
             try:
                 if 'SUCCESS' in tag:
                     self.get_robot(LIKE_ROBOT, chat_id)

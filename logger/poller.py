@@ -50,9 +50,9 @@ class Poller:
 
                         self.bot.send_project_report(project_name)
                         logging.info(
-                            f"{project_name}: обработан RUN_ID={run_id}")
+                            f'{project_name}: обработан RUN_ID={run_id}')
 
                     except Exception as e:
-                        logging.error(f"Ошибка при чтении {path}: {e}")
+                        logging.error(f'Ошибка при чтении {path}: {e}')
 
             time.sleep(self.interval)
