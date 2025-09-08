@@ -44,18 +44,26 @@ class LogFileHandler(FileSystemEventHandler):
     def process_log(self, file_path, project_name):
         try:
             with open(file_path, 'r', encoding='utf-8') as f:
-                last_lines = f.readlines()[-30:]
+                lines = f.readlines()
         except FileNotFoundError:
             return
-        run_id = None
 
-        for line in last_lines:
-            if 'RUN_ID=' in line:
+        run_id = None
+        end_logging_found = False
+
+        for line in reversed(lines):
+            if 'RUN_ID=' in line and not run_id:
                 run_id = line.split('RUN_ID=')[1].split(',')[0].strip()
+            if 'ENDLOGGING=1' in line:
+                end_logging_found = True
+            if run_id and end_logging_found:
                 break
 
         if not run_id:
             logging.warning(f'В логе {file_path} нет RUN_ID')
+            return
+        if not end_logging_found:
+            logging.info(f'Файл {file_path} ещё пишется')
             return
 
         if self.last_run_id.get(project_name) == run_id:
