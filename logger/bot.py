@@ -31,7 +31,7 @@ class IBotLog:
         self.token = token
         self.log_monitor = log_monitor or LogMonitor()
         self.bot = TeleBot(token)
-        self.group_id = group_id
+        self.group_id = int(group_id)
         self.active_users = set()
         self.log_observer = None
         self.setup_handlers()
