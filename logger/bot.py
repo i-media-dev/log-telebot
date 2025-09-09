@@ -4,7 +4,7 @@ import threading
 
 from telebot import TeleBot, types
 from dotenv import load_dotenv
-from watchdog.observers import Observer
+# from watchdog.observers import Observer
 
 from logger.constants import (
     DISSLIKE_ROBOT,
@@ -14,7 +14,8 @@ from logger.constants import (
 )
 from logger.log_monitor import LogMonitor
 from logger.logging_config import setup_logging
-from logger.filewatch import LogFileHandler
+# from logger.filewatch import LogFileHandler
+from logger.poller import LogPoller
 
 setup_logging()
 load_dotenv()
@@ -34,7 +35,7 @@ class IBotLog:
         self.bot = TeleBot(token)
         self.group_id = int(group_id)
         self.active_users = set()
-        self.log_observer = None
+        # self.log_observer = None
         self.lock = threading.RLock()
         self.setup_handlers()
         self.setup_file_watcher()
@@ -59,14 +60,16 @@ class IBotLog:
             raise
 
     def setup_file_watcher(self):
-        self.log_observer = Observer()
-        event_handler = LogFileHandler(self)
+        # self.log_observer = Observer()
+        # event_handler = LogFileHandler(self)
 
-        for project_config in PROJECTS.values():
-            log_dir = project_config['log_path']
-            self.log_observer.schedule(event_handler, log_dir, recursive=False)
+        # for project_config in PROJECTS.values():
+        #     log_dir = project_config['log_path']
+        #     self.log_observer.schedule(event_handler, log_dir, recursive=False)
 
-        self.log_observer.start()
+        # self.log_observer.start()
+        self.poller = LogPoller(self)
+        self.poller.start()
 
     def send_project_report(self, project_name: str):
         tag, result = self.log_monitor.check_logs(project_name)
