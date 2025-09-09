@@ -69,14 +69,19 @@ class IBotLog:
     def send_project_report(self, project_name: str):
         tag, result = self.log_monitor.check_logs(project_name)
 
+        logging.info(
+            f'send_project_report вызван для {project_name}, tag={tag}')
+
         if tag in ['PENDING', 'WARNING', 'DUPLICATE', 'NOTFOUND']:
             return
 
         self.active_users.add(self.group_id)
         active_users_list = list(self.active_users)
+        logging.info(f'Активные пользователи: {active_users_list}')
         for chat_id in active_users_list:
-            logging.info(f'Активные пользователи: {active_users_list}')
             try:
+                logging.info(
+                    f'Отправка отчёта {project_name} пользователю {chat_id}')
                 if 'SUCCESS' in tag:
                     self.get_robot(LIKE_ROBOT, chat_id)
                 else:
@@ -84,7 +89,7 @@ class IBotLog:
                 self.send_message_str(chat_id, result)
                 logging.info(f'Отчет отправлен пользователю {chat_id}')
             except Exception as e:
-                self.active_users.discard(chat_id)
+                # self.active_users.discard(chat_id)
                 logging.error(f'Пользователь {chat_id} недоступен: {e}')
 
     def setup_handlers(self):

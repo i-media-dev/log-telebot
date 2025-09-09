@@ -73,7 +73,7 @@ class LogFileHandler(PatternMatchingEventHandler):
                     break
 
             if not run_id:
-                logging.warning(f'В логе {file_path} нет RUN_ID')
+                logging.debug(f'В логе {file_path} нет RUN_ID')
                 return
 
             if not end_logging_found:
