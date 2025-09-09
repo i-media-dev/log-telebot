@@ -87,7 +87,7 @@ class IBotLog:
 
         for chat_id in recipients_list:
             try:
-                message_key = f"{project_name}_{chat_id}"
+                message_key = f'{project_name}_{chat_id}'
 
                 if message_key in sent_messages:
                     logging.debug(f'Сообщение {message_key} уже отправлено')
@@ -106,11 +106,6 @@ class IBotLog:
 
             except Exception as e:
                 logging.error(f'Пользователь {chat_id} недоступен: {e}')
-                with self.lock:
-                    if chat_id in self.active_users:
-                        self.active_users.remove(chat_id)
-                        logging.info(
-                            f'Пользователь {chat_id} удален из active_users')
 
     def setup_handlers(self):
         @self.bot.message_handler(commands=['start'])
