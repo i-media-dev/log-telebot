@@ -4,8 +4,8 @@ import threading
 
 from telebot import TeleBot, types
 from dotenv import load_dotenv
-# from watchdog.observers import Observer
 
+# from watchdog.observers import Observer
 from logger.constants import (
     DISSLIKE_ROBOT,
     HI_ROBOT,
@@ -65,7 +65,11 @@ class IBotLog:
 
         # for project_config in PROJECTS.values():
         #     log_dir = project_config['log_path']
-        #     self.log_observer.schedule(event_handler, log_dir, recursive=False)
+        #     self.log_observer.schedule(
+        #         event_handler,
+        #         log_dir,
+        #         recursive=False
+        #     )
 
         # self.log_observer.start()
         self.poller = LogPoller(self)
