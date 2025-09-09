@@ -2,17 +2,18 @@ import logging
 import os
 import threading
 
+from datetime import datetime as dt
 from watchdog.events import PatternMatchingEventHandler
 
-from datetime import datetime as dt
 from logger.constants import PROJECTS
 
 
 class LogFileHandler(PatternMatchingEventHandler):
-    DEBOUNCE_SECONDS = 0.5
+    DEBOUNCE_SECONDS = 0.5  # задержка для debounce
 
     def __init__(self, bot, projects: dict[str, dict] = PROJECTS):
-        patterns = ['*.log']
+        today_str = dt.now().strftime('%Y-%m-%d')
+        patterns = [f'*{today_str}.log']
         ignore_patterns = ['*cron*.log']
 
         super().__init__(
@@ -28,66 +29,78 @@ class LogFileHandler(PatternMatchingEventHandler):
             config['log_path']: name for name, config in projects.items()
         }
         self.last_run_id = {}
+        self.processing_flags = {}
         self.debounce_timers = {}
         self.lock = threading.Lock()
 
     def on_modified(self, event):
         project_name = self._get_project_from_path(event.src_path)
-
         if not project_name:
             return
 
-        today_str = dt.now().strftime('%Y-%m-%d')
-        filename = os.path.basename(event.src_path)
-        if today_str not in filename:
-            return
+        with self.lock:
+            if self.processing_flags.get(project_name, False):
+                return
 
-        if project_name in self.debounce_timers:
-            self.debounce_timers[project_name].cancel()
-        timer = threading.Timer(
-            self.DEBOUNCE_SECONDS,
-            self.process_log,
-            args=(event.src_path, project_name)
-        )
-        self.debounce_timers[project_name] = timer
-        timer.start()
+            if project_name in self.debounce_timers:
+                self.debounce_timers[project_name].cancel()
+
+            timer = threading.Timer(
+                self.DEBOUNCE_SECONDS,
+                self.process_log,
+                args=(event.src_path, project_name)
+            )
+            self.debounce_timers[project_name] = timer
+            timer.start()
 
     def process_log(self, file_path, project_name):
         with self.lock:
-            try:
-                with open(file_path, 'r', encoding='utf-8') as f:
-                    lines = f.readlines()
-            except FileNotFoundError:
-                logging.warning(f'Файл не найден: {file_path}')
-                return
+            self.processing_flags[project_name] = True
 
-            run_id = None
-            end_logging_found = False
+        try:
+            with open(file_path, 'r', encoding='utf-8') as f:
+                lines = f.readlines()
+        except FileNotFoundError:
+            logging.warning(f'Файл не найден: {file_path}')
+            with self.lock:
+                self.processing_flags[project_name] = False
+            return
 
-            for line in reversed(lines):
-                if 'RUN_ID=' in line and not run_id:
-                    run_id = line.split('RUN_ID=')[1].split(',')[0].strip()
-                if 'ENDLOGGING=1' in line:
-                    end_logging_found = True
-                if run_id and end_logging_found:
-                    break
+        run_id = None
+        end_logging_found = False
+        for line in reversed(lines):
+            if 'RUN_ID=' in line and not run_id:
+                run_id = line.split('RUN_ID=')[1].split(',')[0].strip()
+            if 'ENDLOGGING=1' in line:
+                end_logging_found = True
+            if run_id and end_logging_found:
+                break
 
-            if not run_id:
-                logging.debug(f'В логе {file_path} нет RUN_ID')
-                return
+        if not run_id:
+            logging.warning(f'В логе {file_path} нет RUN_ID')
+            with self.lock:
+                self.processing_flags[project_name] = False
+            return
 
-            if not end_logging_found:
-                logging.info(f'Файл {file_path} ещё пишется')
-                return
+        if not end_logging_found:
+            logging.info(f'Файл {file_path} ещё пишется')
+            with self.lock:
+                self.processing_flags[project_name] = False
+            return
 
+        with self.lock:
             if self.last_run_id.get(project_name) == run_id:
                 logging.info(
                     f'RUN_ID={run_id} для {project_name} уже обработан')
+                self.processing_flags[project_name] = False
                 return
-
             self.last_run_id[project_name] = run_id
-            logging.info(f'Готов новый отчёт: {project_name}, RUN_ID={run_id}')
-            self.bot.send_project_report(project_name)
+
+        logging.info(f'Готов новый отчёт: {project_name}, RUN_ID={run_id}')
+        self.bot.send_project_report(project_name)
+
+        with self.lock:
+            self.processing_flags[project_name] = False
 
     def _get_project_from_path(self, file_path: str):
         file_dir = os.path.dirname(file_path)

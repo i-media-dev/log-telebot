@@ -1,5 +1,6 @@
 import logging
 import os
+import threading
 
 from telebot import TeleBot, types
 from dotenv import load_dotenv
@@ -74,9 +75,9 @@ class IBotLog:
 
         if tag in ['PENDING', 'WARNING', 'DUPLICATE', 'NOTFOUND']:
             return
-
-        self.active_users.add(self.group_id)
-        active_users_list = list(self.active_users)
+        with threading.Lock():
+            self.active_users.add(self.group_id)
+            active_users_list = list(self.active_users)
         logging.info(f'Активные пользователи: {active_users_list}')
         for chat_id in active_users_list:
             try:
