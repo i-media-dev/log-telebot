@@ -35,6 +35,7 @@ class IBotLog:
         self.group_id = int(group_id)
         self.active_users = set()
         self.log_observer = None
+        self.lock = threading.RLock()
         self.setup_handlers()
         self.setup_file_watcher()
 
@@ -75,17 +76,23 @@ class IBotLog:
         if tag in ['PENDING', 'WARNING', 'DUPLICATE', 'NOTFOUND']:
             return
 
-        with threading.Lock():
+        with self.lock:
             recipients = set(self.active_users)
             recipients.add(self.group_id)
             recipients_list = list(recipients)
 
         logging.info(
-            f'Отправка отчета {project_name} пользователям: {recipients_list}'
-        )
+            f'Отправка отчета {project_name} пользователям: {recipients_list}')
+        sent_messages = set()
 
         for chat_id in recipients_list:
             try:
+                message_key = f"{project_name}_{chat_id}"
+
+                if message_key in sent_messages:
+                    logging.debug(f'Сообщение {message_key} уже отправлено')
+                    continue
+
                 logging.info(
                     f'Отправка отчёта {project_name} пользователю {chat_id}')
                 if 'SUCCESS' in tag:
@@ -93,9 +100,17 @@ class IBotLog:
                 else:
                     self.get_robot(DISSLIKE_ROBOT, chat_id)
                 self.send_message_str(chat_id, result)
+                sent_messages.add(message_key)
+
                 logging.info(f'Отчет отправлен пользователю {chat_id}')
+
             except Exception as e:
                 logging.error(f'Пользователь {chat_id} недоступен: {e}')
+                with self.lock:
+                    if chat_id in self.active_users:
+                        self.active_users.remove(chat_id)
+                        logging.info(
+                            f'Пользователь {chat_id} удален из active_users')
 
     def setup_handlers(self):
         @self.bot.message_handler(commands=['start'])

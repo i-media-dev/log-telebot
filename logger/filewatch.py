@@ -9,7 +9,7 @@ from logger.constants import PROJECTS
 
 
 class LogFileHandler(PatternMatchingEventHandler):
-    DEBOUNCE_SECONDS = 0.5
+    DEBOUNCE_SECONDS = 3.0
 
     def __init__(self, bot, projects: dict[str, dict] = PROJECTS):
         super().__init__(
@@ -27,7 +27,7 @@ class LogFileHandler(PatternMatchingEventHandler):
         self.last_run_id = {}
         self.processing_flags = {}
         self.debounce_timers = {}
-        self.lock = threading.Lock()
+        self.lock = threading.RLock()
 
     def on_modified(self, event):
         project_name = self._get_project_from_path(event.src_path)
@@ -56,11 +56,21 @@ class LogFileHandler(PatternMatchingEventHandler):
             self.processing_flags[project_name] = True
 
     def _process_log(self, file_path, project_name):
+        if not os.path.exists(file_path):
+            with self.lock:
+                self.processing_flags[project_name] = False
+            return
+
         try:
             with open(file_path, 'r', encoding='utf-8') as f:
                 lines = f.readlines()
         except FileNotFoundError:
-            logging.warning(f'Файл не найден: {file_path}')
+            logging.debug(f'Файл не найден: {file_path}')
+            with self.lock:
+                self.processing_flags[project_name] = False
+            return
+        except Exception as e:
+            logging.error(f'Ошибка чтения файла {file_path}: {e}')
             with self.lock:
                 self.processing_flags[project_name] = False
             return
@@ -76,7 +86,7 @@ class LogFileHandler(PatternMatchingEventHandler):
                 break
 
         if not run_id:
-            logging.warning(f'В логе {file_path} нет RUN_ID')
+            logging.debug(f'В логе {file_path} нет RUN_ID')
             with self.lock:
                 self.processing_flags[project_name] = False
             return
