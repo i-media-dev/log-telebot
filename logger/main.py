@@ -14,4 +14,5 @@ webhook_manager = WebhookManager(
     host=os.getenv('WEBHOOK_HOST')
 )
 
+webhook_manager.setup_webhook()
 app = webhook_manager.get_app()

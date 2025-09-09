@@ -23,7 +23,6 @@ class WebhookManager:
         self.host = host or os.getenv('WEBHOOK_HOST')
         self.app = Flask(__name__)
         self._setup_routes()
-        self._setup_webhook()
 
     def _setup_routes(self):
         @self.app.route(f'/{self.bot.token}/', methods=['POST'])
@@ -47,7 +46,7 @@ class WebhookManager:
 
             return 'OK'
 
-    def _setup_webhook(self):
+    def setup_webhook(self):
         webhook_url = f'https://{self.host}/{self.bot.token}/'
         try:
             info = self.telebot.get_webhook_info()
