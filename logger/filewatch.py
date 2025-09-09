@@ -9,11 +9,10 @@ from logger.constants import PROJECTS
 
 
 class LogFileHandler(PatternMatchingEventHandler):
-    DEBOUNCE_SECONDS = 0.5  # задержка для debounce
+    DEBOUNCE_SECONDS = 0.5
 
     def __init__(self, bot, projects: dict[str, dict] = PROJECTS):
-        today_str = dt.now().strftime('%Y-%m-%d')
-        patterns = [f'*{today_str}.log']
+        patterns = ['*.log']
         ignore_patterns = ['*cron*.log']
 
         super().__init__(
@@ -35,7 +34,13 @@ class LogFileHandler(PatternMatchingEventHandler):
 
     def on_modified(self, event):
         project_name = self._get_project_from_path(event.src_path)
+        filename = os.path.basename(event.src_path)
+        today_str = dt.now().strftime('%Y-%m-%d')
+
         if not project_name:
+            return
+
+        if today_str not in filename:
             return
 
         with self.lock:
@@ -51,6 +56,7 @@ class LogFileHandler(PatternMatchingEventHandler):
                 args=(event.src_path, project_name)
             )
             self.debounce_timers[project_name] = timer
+            self.processing_flags[project_name] = True
             timer.start()
 
     def process_log(self, file_path, project_name):
