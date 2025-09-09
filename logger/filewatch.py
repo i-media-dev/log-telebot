@@ -12,7 +12,6 @@ class LogFileHandler(PatternMatchingEventHandler):
     DEBOUNCE_SECONDS = 0.5
 
     def __init__(self, bot, projects: dict[str, dict] = PROJECTS):
-        today_str = dt.now().strftime('%Y-%m-%d')
         patterns = ['*.log']
         ignore_patterns = ['*cron*.log']
 
