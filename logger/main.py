@@ -17,8 +17,8 @@ def main():
     )
 
     webhook_manager.setup_webhook()
-    app = webhook_manager.get_app()
+    return webhook_manager.get_app()
 
 
 if __name__ == '__main__':
-    main()
+    app = main()
