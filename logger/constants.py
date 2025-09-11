@@ -32,3 +32,10 @@ PROJECTS = {
 
 INTERVAL_POLLING = 30
 """Интервал проверки директории логов."""
+
+MEMES = [
+    'dontpanic-robot.png',
+    'normalno-robot.png',
+    'okak-robot.png',
+    'tralala-robot.png'
+]

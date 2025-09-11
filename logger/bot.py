@@ -1,5 +1,6 @@
 import logging
 import os
+import random
 import threading
 
 from telebot import TeleBot, types
@@ -10,7 +11,8 @@ from logger.constants import (
     DISSLIKE_ROBOT,
     HI_ROBOT,
     LIKE_ROBOT,
-    PROJECTS
+    PROJECTS,
+    MEMES
 )
 from logger.log_monitor import LogMonitor
 from logger.logging_config import setup_logging
@@ -31,6 +33,7 @@ class IBotLog:
         group_id=os.getenv('GROUP_ID'),
         log_monitor=None
     ):
+        logging.info(f'Создаем IBotLog с токеном: {token[:10]}...')
         self.token = token
         self.log_monitor = log_monitor or LogMonitor()
         self.bot = TeleBot(token)
@@ -219,3 +222,10 @@ class IBotLog:
                 self.send_message_str(chat_id, message_str, keyboard)
             except Exception as e:
                 logging.error(f'Ошибка {e}')
+
+        @self.bot.message_handler(commands=['memes'])
+        def show_memes(message):
+            chat = message.chat
+            chat_id = chat.id
+            random_memes = random.choice(MEMES)
+            self.get_robot(random_memes, chat_id)
