@@ -7,12 +7,18 @@ from logger.webhook import WebhookManager
 
 load_dotenv()
 
-bot = IBotLog(os.getenv('TELEGRAM_TOKEN'))
-webhook_manager = WebhookManager(
-    bot=bot,
-    telebot=bot.bot,
-    host=os.getenv('WEBHOOK_HOST')
-)
 
-webhook_manager.setup_webhook()
-app = webhook_manager.get_app()
+def main():
+    bot = IBotLog(os.getenv('TELEGRAM_TOKEN'))
+    webhook_manager = WebhookManager(
+        bot=bot,
+        telebot=bot.bot,
+        host=os.getenv('WEBHOOK_HOST')
+    )
+
+    webhook_manager.setup_webhook()
+    app = webhook_manager.get_app()
+
+
+if __name__ == '__main__':
+    main()
