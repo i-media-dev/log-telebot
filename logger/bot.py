@@ -44,9 +44,9 @@ class IBotLog:
         self.setup_handlers()
         self.setup_file_watcher()
 
-    def get_robot(self, robot, chat_id):
+    def get_robot(self, robot, chat_id, robot_folder='robot'):
         try:
-            with open(f'robot/{robot}', 'rb') as photo:
+            with open(f'{robot_folder}/{robot}', 'rb') as photo:
                 self.bot.send_sticker(chat_id, photo)
         except FileNotFoundError:
             logging.warning(f'Робот {robot} не найден')
@@ -228,4 +228,4 @@ class IBotLog:
             chat = message.chat
             chat_id = chat.id
             random_memes = random.choice(MEMES)
-            self.get_robot(random_memes, chat_id)
+            self.get_robot(random_memes, chat_id, 'easteregg')
