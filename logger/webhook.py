@@ -11,6 +11,7 @@ setup_logging()
 
 
 class WebhookManager:
+    """Класс для подключения к telegram через webgook."""
 
     def __init__(
         self,

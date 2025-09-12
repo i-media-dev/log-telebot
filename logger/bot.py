@@ -1,7 +1,6 @@
 import logging
 import os
 import random
-import threading
 
 from telebot import TeleBot, types
 from dotenv import load_dotenv
@@ -33,14 +32,12 @@ class IBotLog:
         group_id=os.getenv('GROUP_ID'),
         log_monitor=None
     ):
-        logging.info(f'Создаем IBotLog с токеном: {token[:10]}...')
         self.token = token
         self.log_monitor = log_monitor or LogMonitor()
         self.bot = TeleBot(token)
         self.group_id = int(group_id)
         self.active_users = set()
         self.log_observer = None
-        self.lock = threading.RLock()
         self.setup_handlers()
         self.setup_file_watcher()
 
@@ -76,76 +73,35 @@ class IBotLog:
             )
 
         self.log_observer.start()
-        # self.poller = LogPoller(self)
-        # self.poller.start()
 
     def send_project_report(self, project_name: str):
         tag, result = self.log_monitor.check_logs(project_name)
         logging.info(
             f'send_project_report вызван для {project_name}, tag={tag}')
 
-        if tag in ['PENDING', 'WARNING', 'DUPLICATE', 'NOTFOUND']:
+        if tag in ['PENDING', 'WARNING', 'NOTFOUND']:
             return
 
-        report_id = f'{project_name}_{tag}'
+        self.active_users.add(self.group_id)
+        logging.info(f'Активные пользователи: {list(self.active_users)}')
 
-        with self.lock:
-            if hasattr(
-                self,
-                '_processing_reports'
-            ) and report_id in self._processing_reports:
+        for chat_id in list(self.active_users):
+            try:
                 logging.info(
-                    f'Отчет {report_id} уже обрабатывается, пропускаем')
-                return
+                    f'Отправка отчёта {project_name} пользователю {chat_id}'
+                )
 
-            if not hasattr(self, '_processing_reports'):
-                self._processing_reports = set()
-            self._processing_reports.add(report_id)
+                if 'SUCCESS' in tag:
+                    self.get_robot(LIKE_ROBOT, chat_id)
+                else:
+                    self.get_robot(DISSLIKE_ROBOT, chat_id)
 
-            recipients = set(self.active_users)
-            recipients.add(self.group_id)
-            recipients_list = list(recipients)
+                self.send_message_str(chat_id, result)
+                logging.info(f'Отчет отправлен пользователю {chat_id}')
 
-        try:
-            logging.info(
-                f'Отправка отчета {project_name} '
-                f'пользователям: {recipients_list}'
-            )
-            sent_messages = set()
-
-            for chat_id in recipients_list:
-                try:
-                    message_key = f'{project_name}_{chat_id}'
-
-                    if message_key in sent_messages:
-                        logging.debug(
-                            f'Сообщение {message_key} '
-                            'уже отправлено в этом отчете'
-                        )
-                        continue
-
-                    logging.info(
-                        f'Отправка отчёта {project_name} '
-                        f'пользователю {chat_id}'
-                    )
-                    if 'SUCCESS' in tag:
-                        self.get_robot(LIKE_ROBOT, chat_id)
-                    else:
-                        self.get_robot(DISSLIKE_ROBOT, chat_id)
-                    self.send_message_str(chat_id, result)
-                    sent_messages.add(message_key)
-
-                    logging.info(f'Отчет отправлен пользователю {chat_id}')
-
-                except Exception as e:
-                    logging.error(f'Пользователь {chat_id} недоступен: {e}')
-        finally:
-            with self.lock:
-                if hasattr(
-                    self,
-                    '_processing_reports'
-                ) and report_id in self._processing_reports:
-                    self._processing_reports.remove(report_id)
+            except Exception as e:
+                self.active_users.discard(chat_id)
+                logging.error(f'Пользователь {chat_id} недоступен: {e}')
 
     def setup_handlers(self):
         @self.bot.message_handler(commands=['start'])

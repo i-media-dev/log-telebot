@@ -1,15 +1,14 @@
 import logging
 import os
-import threading
 
 from datetime import datetime as dt
 from watchdog.events import PatternMatchingEventHandler
 
-from logger.constants import PROJECTS
+from logger.constants import PROJECTS, MAX_PROCESSED_IDS
 
 
 class LogFileHandler(PatternMatchingEventHandler):
-    DEBOUNCE_SECONDS = 3.0
+    """Класс для отслеживания изменений в логах."""
 
     def __init__(self, bot, projects: dict[str, dict] = PROJECTS):
         super().__init__(
@@ -24,13 +23,12 @@ class LogFileHandler(PatternMatchingEventHandler):
         self.log_dir_to_project = {
             config['log_path']: name for name, config in projects.items()
         }
-        self.last_run_id = {}
-        self.processing_flags = {}
-        self.debounce_timers = {}
-        self.lock = threading.RLock()
+        self.processed_run_ids = set()
+        self.max_processed_ids = MAX_PROCESSED_IDS
 
     def on_modified(self, event):
         project_name = self._get_project_from_path(event.src_path)
+
         if not project_name:
             return
 
@@ -38,78 +36,39 @@ class LogFileHandler(PatternMatchingEventHandler):
         today_str = dt.now().strftime('%Y-%m-%d')
         if today_str not in filename:
             return
-
-        with self.lock:
-            if self.processing_flags.get(project_name, False):
-                return
-
-            if project_name in self.debounce_timers:
-                self.debounce_timers[project_name].cancel()
-
-            timer = threading.Timer(
-                self.DEBOUNCE_SECONDS,
-                self._process_log,
-                args=(event.src_path, project_name)
-            )
-            self.debounce_timers[project_name] = timer
-            timer.start()
-            self.processing_flags[project_name] = True
+        self._process_log(event.src_path, project_name)
 
     def _process_log(self, file_path, project_name):
         if not os.path.exists(file_path):
-            with self.lock:
-                self.processing_flags[project_name] = False
             return
-
         try:
             with open(file_path, 'r', encoding='utf-8') as f:
-                lines = f.readlines()
-        except FileNotFoundError:
-            logging.debug(f'Файл не найден: {file_path}')
-            with self.lock:
-                self.processing_flags[project_name] = False
-            return
+                content = f.read()
         except Exception as e:
             logging.error(f'Ошибка чтения файла {file_path}: {e}')
-            with self.lock:
-                self.processing_flags[project_name] = False
+            return
+
+        if 'ENDLOGGING=1' not in content:
+            logging.info(f'Файл {file_path} ещё пишется')
             return
 
         run_id = None
-        end_logging_found = False
-        for line in reversed(lines):
-            if 'RUN_ID=' in line and not run_id:
-                run_id = line.split('RUN_ID=')[1].split(',')[0].strip()
-            if 'ENDLOGGING=1' in line:
-                end_logging_found = True
-            if run_id and end_logging_found:
-                break
+        if 'RUN_ID=' in content:
+            run_id = content.split('RUN_ID=')[1].split(',')[0].strip()
 
-        if not run_id:
-            logging.debug(f'В логе {file_path} нет RUN_ID')
-            with self.lock:
-                self.processing_flags[project_name] = False
-            return
-
-        if not end_logging_found:
-            logging.info(f'Файл {file_path} ещё пишется')
-            with self.lock:
-                self.processing_flags[project_name] = False
-            return
-
-        with self.lock:
-            if self.last_run_id.get(project_name) == run_id:
+        if run_id:
+            run_key = f'{project_name}_{run_id}'
+            if run_key in self.processed_run_ids:
                 logging.info(
                     f'RUN_ID={run_id} для {project_name} уже обработан')
-                self.processing_flags[project_name] = False
                 return
-            self.last_run_id[project_name] = run_id
 
-        logging.info(f'Готов новый отчёт: {project_name}, RUN_ID={run_id}')
+            if len(self.processed_run_ids) >= self.max_processed_ids:
+                self.processed_run_ids.clear()
+            self.processed_run_ids.add(run_key)
+
+        logging.info(f'Готов новый отчёт: {project_name}')
         self.bot.send_project_report(project_name)
-
-        with self.lock:
-            self.processing_flags[project_name] = False
 
     def _get_project_from_path(self, file_path: str):
         file_dir = os.path.dirname(file_path)
