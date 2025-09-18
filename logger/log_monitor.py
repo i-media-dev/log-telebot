@@ -14,7 +14,7 @@ setup_logging()
 class LogMonitor:
     """Класс, отвечающий за чтение и проверку логов проекта."""
 
-    def __init__(self, projects: dict[str, str] = PROJECTS):
+    def __init__(self, projects: dict[str, dict[str, str]] = PROJECTS):
         self.projects = projects
 
     def check_logs(self, project_name: str) -> tuple[str, str]:

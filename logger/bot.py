@@ -7,17 +7,17 @@ from dotenv import load_dotenv
 from watchdog.observers import Observer
 
 from logger.constants import (
-    DISSLIKE_ROBOT,
+    # DISSLIKE_ROBOT,
+    ERROR_ROBOTS,
     HI_ROBOT,
-    LIKE_ROBOT,
+    # LIKE_ROBOT,
+    MEMES,
     PROJECTS,
-    MEMES
+    SUCCESS_ROBOTS
 )
 from logger.log_monitor import LogMonitor
 from logger.logging_config import setup_logging
 from logger.filewatch import LogFileHandler
-
-# from logger.poller import LogPoller
 
 setup_logging()
 load_dotenv()
@@ -92,9 +92,11 @@ class IBotLog:
                 )
 
                 if 'SUCCESS' in tag:
-                    self.get_robot(LIKE_ROBOT, chat_id)
+                    rndm_success_robot = random.choice(SUCCESS_ROBOTS)
+                    self.get_robot(rndm_success_robot, chat_id)
                 else:
-                    self.get_robot(DISSLIKE_ROBOT, chat_id)
+                    rndm_error_robot = random.choice(ERROR_ROBOTS)
+                    self.get_robot(rndm_error_robot, chat_id)
 
                 self.send_message_str(chat_id, result)
                 logging.info(f'Отчет отправлен пользователю {chat_id}')
@@ -159,9 +161,11 @@ class IBotLog:
                 back_button = types.KeyboardButton('/back')
                 keyboard.add(back_button)
                 if 'SUCCESS' in tag:
-                    self.get_robot(LIKE_ROBOT, chat_id)
+                    rndm_success_robot = random.choice(SUCCESS_ROBOTS)
+                    self.get_robot(rndm_success_robot, chat_id)
                 else:
-                    self.get_robot(DISSLIKE_ROBOT, chat_id)
+                    rndm_error_robot = random.choice(ERROR_ROBOTS)
+                    self.get_robot(rndm_error_robot, chat_id)
                 self.send_message_str(chat_id, result, keyboard)
             except Exception as e:
                 logging.error(f'Ошибка {e}')

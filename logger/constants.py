@@ -9,22 +9,37 @@ LIKE_ROBOT = 'like-robot.png'
 DISSLIKE_ROBOT = 'disslike-robot.png'
 DEPLOY_ROBOT = 'deploy-robot.png'
 
+SUCCESS_ROBOTS = (
+    'normalno-robot.png',
+    'tralala-robot.png',
+    'gatsby-robot.png',
+    'like-robot.png'
+)
+"""Мемные роботы для удачных операций."""
+
+ERROR_ROBOTS = (
+    'dontpanic-robot.png',
+    'okak-robot.png',
+    'cry-robot.png',
+    'disslike-robot.png'
+)
+"""Мемные роботы для неудачных операций."""
 
 PROJECTS = {
     'auchan_feed_handler': {
-        'log_path': os.getenv('LOG_PATH_AUCHAN'),
+        'log_path': os.getenv('LOG_PATH_AUCHAN', ''),
         'check_time': '07:30',
     },
     'citilink_feed_handler': {
-        'log_path': os.getenv('LOG_PATH_CITILINK'),
+        'log_path': os.getenv('LOG_PATH_CITILINK', ''),
         'check_time': '07:30',
     },
     'eapteka_feed_handler': {
-        'log_path': os.getenv('LOG_PATH_EAPTEKA'),
+        'log_path': os.getenv('LOG_PATH_EAPTEKA', ''),
         'check_time': '08:00',
     },
     'wb_parser': {
-        'log_path': os.getenv('LOG_PATH_WB'),
+        'log_path': os.getenv('LOG_PATH_WB', ''),
         'check_time': '00:30',
     }
 }
@@ -37,5 +52,8 @@ MEMES = [
     'dontpanic-robot.png',
     'normalno-robot.png',
     'okak-robot.png',
-    'tralala-robot.png'
+    'tralala-robot.png',
+    'chill-robot.png',
+    'cry-robot.png',
+    'gatsby-robot.png'
 ]
