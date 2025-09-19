@@ -14,7 +14,7 @@ SUCCESS_ROBOTS = [
     'normalno-robot.png',
     'tralala-robot.png',
     'gatsby-robot.png',
-    'statem-robot.png'
+    'statem-robot.png',
     'like-robot.png'
 ]
 """Мемные роботы для удачных операций."""
