@@ -9,20 +9,22 @@ LIKE_ROBOT = 'like-robot.png'
 DISSLIKE_ROBOT = 'disslike-robot.png'
 DEPLOY_ROBOT = 'deploy-robot.png'
 
-SUCCESS_ROBOTS = (
+SUCCESS_ROBOTS = [
+    'chill-robot.png',
     'normalno-robot.png',
     'tralala-robot.png',
     'gatsby-robot.png',
+    'statem-robot.png'
     'like-robot.png'
-)
+]
 """Мемные роботы для удачных операций."""
 
-ERROR_ROBOTS = (
+ERROR_ROBOTS = [
     'dontpanic-robot.png',
     'okak-robot.png',
     'cry-robot.png',
     'disslike-robot.png'
-)
+]
 """Мемные роботы для неудачных операций."""
 
 PROJECTS = {
@@ -55,5 +57,6 @@ MEMES = [
     'tralala-robot.png',
     'chill-robot.png',
     'cry-robot.png',
-    'gatsby-robot.png'
+    'gatsby-robot.png',
+    'statem-robot.png'
 ]
