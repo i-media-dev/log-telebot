@@ -14,3 +14,4 @@ services:
       - /home/egor/project/citilink/logs:/home/egor/project/citilink/logs
       - /home/egor/project/auchan/logs:/home/egor/project/auchan/logs
       - /home/egor/project/eapteka/logs:/home/egor/project/eapteka/logs
+      - /home/egor/project/uvi/logs:/home/egor/project/uvi/logs
