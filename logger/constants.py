@@ -62,3 +62,4 @@ MEMES = [
     'gatsby-robot.png',
     'statem-robot.png'
 ]
+"""Мемы."""
