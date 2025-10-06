@@ -29,23 +29,25 @@ ERROR_ROBOTS = [
 
 PROJECTS = {
     'auchan_feed_handler': {
-        'log_path': os.getenv('LOG_PATH_AUCHAN', ''),
-        'check_time': '07:30',
+        'log_path': os.getenv('LOG_PATH_AUCHAN', '')
     },
     'citilink_feed_handler': {
-        'log_path': os.getenv('LOG_PATH_CITILINK', ''),
-        'check_time': '07:30',
+        'log_path': os.getenv('LOG_PATH_CITILINK', '')
     },
     'eapteka_feed_handler': {
-        'log_path': os.getenv('LOG_PATH_EAPTEKA', ''),
-        'check_time': '08:00',
+        'log_path': os.getenv('LOG_PATH_EAPTEKA', '')
+    },
+    'uvi_feed_handler': {
+        'log_path': os.getenv('LOG_PATH_UVI', '')
     },
     'wb_parser': {
-        'log_path': os.getenv('LOG_PATH_WB', ''),
-        'check_time': '00:30',
+        'log_path': os.getenv('LOG_PATH_WB', '')
     }
 }
-"""Константа, содержащая настройки существующих проектов."""
+"""
+Константа, содержащая настройки существующих
+проектов (в новых версиях только путь до логов).
+"""
 
 MAX_PROCESSED_IDS = 500
 """Максимальный размер множества с run_id логов."""
