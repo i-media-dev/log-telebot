@@ -1,10 +1,11 @@
 import logging
 import os
+import random
 
 from telebot import types
 
 from flask import Flask, request
-from logger.constants import DEPLOY_ROBOT
+from logger.constants import DEPLOY_ROBOTS
 from logger.logging_config import setup_logging
 
 setup_logging()
@@ -39,10 +40,11 @@ class WebhookManager:
             project_name = data.get('project', 'проекта')
             message_str = f'✅ Деплой {project_name} успешно выполнен!'
             group_id = int(data.get('telegram_to'))
+            rndm_deploy_robot = random.choice(DEPLOY_ROBOTS)
 
             self.bot.active_users.add(group_id)
             for user_id in self.bot.active_users:
-                self.bot.get_robot(DEPLOY_ROBOT, user_id)
+                self.bot.get_robot(rndm_deploy_robot, user_id)
                 self.bot.send_message_str(user_id, message_str)
 
             return 'OK'

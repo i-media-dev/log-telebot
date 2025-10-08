@@ -9,6 +9,12 @@ LIKE_ROBOT = 'like-robot.png'
 DISSLIKE_ROBOT = 'disslike-robot.png'
 DEPLOY_ROBOT = 'deploy-robot.png'
 
+DEPLOY_ROBOTS = [
+    'deploy-robot.png',
+    'rocket-robot.png'
+]
+"""Мемные роботы для деплоя."""
+
 SUCCESS_ROBOTS = [
     'chill-robot.png',
     'normalno-robot.png',
@@ -23,7 +29,8 @@ ERROR_ROBOTS = [
     'dontpanic-robot.png',
     'okak-robot.png',
     'cry-robot.png',
-    'disslike-robot.png'
+    'disslike-robot.png',
+    'rage-robot.png'
 ]
 """Мемные роботы для неудачных операций."""
 
