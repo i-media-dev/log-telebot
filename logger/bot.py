@@ -2,22 +2,15 @@ import logging
 import os
 import random
 
-from telebot import TeleBot, types
 from dotenv import load_dotenv
+from telebot import TeleBot, types
 from watchdog.observers import Observer
 
-from logger.constants import (
-    # DISSLIKE_ROBOT,
-    ERROR_ROBOTS,
-    HI_ROBOT,
-    # LIKE_ROBOT,
-    MEMES,
-    PROJECTS,
-    SUCCESS_ROBOTS
-)
+from logger.constants import (ERROR_ROBOTS, HI_ROBOT, MEMES, PROJECTS,
+                              SUCCESS_ROBOTS)
+from logger.filewatch import LogFileHandler
 from logger.log_monitor import LogMonitor
 from logger.logging_config import setup_logging
-from logger.filewatch import LogFileHandler
 
 setup_logging()
 load_dotenv()

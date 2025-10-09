@@ -1,10 +1,10 @@
 import logging
 import os
-
 from datetime import datetime as dt
+
 from watchdog.events import PatternMatchingEventHandler
 
-from logger.constants import PROJECTS, MAX_PROCESSED_IDS
+from logger.constants import MAX_PROCESSED_IDS, PROJECTS
 
 
 class LogFileHandler(PatternMatchingEventHandler):

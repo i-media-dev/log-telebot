@@ -30,7 +30,8 @@ ERROR_ROBOTS = [
     'okak-robot.png',
     'cry-robot.png',
     'disslike-robot.png',
-    'rage-robot.png'
+    'rage-robot.png',
+    'yakubovich-robot.png'
 ]
 """Мемные роботы для неудачных операций."""
 

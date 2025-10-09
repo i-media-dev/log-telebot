@@ -2,9 +2,9 @@ import logging
 import os
 import random
 
+from flask import Flask, request
 from telebot import types
 
-from flask import Flask, request
 from logger.constants import DEPLOY_ROBOTS
 from logger.logging_config import setup_logging
 
