@@ -3,6 +3,7 @@ services:
     environment:
       - TZ=Europe/Moscow
     image: imediadev/log-telebot
+    user: "1002:1002"
     env_file: .env
     ports:
       - 8000:8000
