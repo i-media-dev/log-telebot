@@ -45,6 +45,9 @@ PROJECTS = {
     'eapteka_feed_handler': {
         'log_path': os.getenv('LOG_PATH_EAPTEKA', '')
     },
+    'globus_feed_handler': {
+        'log_path': os.getenv('LOG_PATH_GLOBUS', '')
+    },
     'uvi_feed_handler': {
         'log_path': os.getenv('LOG_PATH_UVI', '')
     },

@@ -15,3 +15,4 @@ services:
       - /home/egor/project/auchan/logs:/home/egor/project/auchan/logs
       - /home/egor/project/eapteka/logs:/home/egor/project/eapteka/logs
       - /home/egor/project/uvi/logs:/home/egor/project/uvi/logs
+      - /home/egor/project/globus/logs:/home/egor/project/globus/logs
