@@ -42,6 +42,9 @@ PROJECTS = {
     'citilink_feed_handler': {
         'log_path': os.getenv('LOG_PATH_CITILINK', '')
     },
+    'divanchik_feed_handler': {
+        'log_path': os.getenv('LOG_PATH_DIVANCHIK', '')
+    },
     'eapteka_feed_handler': {
         'log_path': os.getenv('LOG_PATH_EAPTEKA', '')
     },
