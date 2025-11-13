@@ -49,13 +49,17 @@ class IBotLog:
 
             dont_work_projects = []
             date_today = dt.now().strftime(DATE_FORMAT)
+            day_of_week = dt.now().isoweekday()
+            wish_text = 'Хорошего рабочего дня!'
+            if day_of_week in (6, 7):
+                wish_text = 'Хороших выходных!'
             for name, _ in PROJECTS.items():
                 if name not in self.success_scripts_name:
                     dont_work_projects.append(name)
 
             success_message_text = (
                 f'Отработали все {self.report_message_count[date_today]}/'
-                f'{len(PROJECTS)} скриптов. Хорошего рабочего дня!'
+                f'{len(PROJECTS)} скриптов. {wish_text}'
             )
             failure_message_text = (
                 'Отработали не все скрипты: '
