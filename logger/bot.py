@@ -1,13 +1,19 @@
 import logging
 import os
 import random
+import threading
+import time
+from collections import defaultdict
+from datetime import datetime as dt
 
+import schedule
 from dotenv import load_dotenv
 from telebot import TeleBot, types
 from watchdog.observers import Observer
 
-from logger.constants import (ERROR_ROBOTS, HI_ROBOT, MEMES, PROJECTS,
-                              SUCCESS_ROBOTS)
+from logger.constants import (COFFE_ROBOT, COUNT_ROBOT, DATE_FORMAT,
+                              ERROR_ROBOTS, HI_ROBOT, MEMES, PROJECTS,
+                              SUCCESS_ROBOTS, TIME_FOR_ALLERT)
 from logger.filewatch import LogFileHandler
 from logger.log_monitor import LogMonitor
 from logger.logging_config import setup_logging
@@ -29,17 +35,68 @@ class IBotLog:
         self.log_monitor = log_monitor or LogMonitor()
         self.bot = TeleBot(token)
         self.group_id = int(group_id)
-        self.active_users = set()
+        self.active_users: set = set()
         self.log_observer = None
+        self.report_message_count: dict[str, int] = defaultdict(int)
+        self.success_scripts_name: list[str] = []
         self.setup_handlers()
         self.setup_file_watcher()
+        self.start_daily_scheduler()
+
+    def start_daily_scheduler(self):
+        """Запускает ежедневную отправку в 10:00"""
+        def send_morning_message():
+
+            dont_work_projects = []
+            date_today = dt.now().strftime(DATE_FORMAT)
+            for name, _ in PROJECTS.items():
+                if name not in self.success_scripts_name:
+                    dont_work_projects.append(name)
+
+            success_message_text = (
+                f'Отработали все {self.report_message_count[date_today]}/'
+                f'{len(PROJECTS)} скриптов. Хорошего рабочего дня!'
+            )
+            failure_message_text = (
+                'Отработали не все скрипты: '
+                f'{self.report_message_count[date_today]}/'
+                f'{len(PROJECTS)}. Не было сообщений по скриптам: '
+                f'{dont_work_projects}.'
+                'Не лучшее начало дня, но вы справитесь!'
+            )
+            self.success_scripts_name.clear()
+            self.active_users.add(self.group_id)
+            for chat_id in list(self.active_users):
+                try:
+                    if self.report_message_count[date_today] == len(PROJECTS):
+                        self.get_robot(COFFE_ROBOT, chat_id)
+                        self.send_message_str(chat_id, success_message_text)
+                    else:
+                        self.get_robot(COUNT_ROBOT, chat_id)
+                        self.send_message_str(chat_id, failure_message_text)
+                except Exception as error:
+                    logging.error(
+                        'Ошибка отправки утреннего сообщения: %s',
+                        error
+                    )
+            self.report_message_count.clear()
+        schedule.every().day.at(TIME_FOR_ALLERT).do(send_morning_message)
+
+        def run_scheduler():
+            while True:
+                schedule.run_pending()
+                time.sleep(60)
+
+        scheduler_thread = threading.Thread(target=run_scheduler)
+        scheduler_thread.daemon = True
+        scheduler_thread.start()
 
     def get_robot(self, robot, chat_id, robot_folder='robot'):
         try:
             with open(f'{robot_folder}/{robot}', 'rb') as photo:
                 self.bot.send_sticker(chat_id, photo)
         except FileNotFoundError:
-            logging.warning(f'Робот {robot} не найден')
+            logging.warning('Робот %s не найден', robot)
 
     def send_message_str(self, chat_id, message_str, keyboard=None):
         try:
@@ -48,9 +105,9 @@ class IBotLog:
                 text=message_str,
                 reply_markup=keyboard
             )
-            logging.info(f'Сообщение отправлено получателю {chat_id}')
-        except Exception as e:
-            logging.error(f'Ошибка при отправке сообщения: {e}')
+            logging.info('Сообщение отправлено получателю %s', chat_id)
+        except Exception as error:
+            logging.error('Ошибка при отправке сообщения: %s', error)
             raise
 
     def setup_file_watcher(self):
@@ -70,18 +127,23 @@ class IBotLog:
     def send_project_report(self, project_name: str):
         tag, result = self.log_monitor.check_logs(project_name)
         logging.info(
-            f'send_project_report вызван для {project_name}, tag={tag}')
+            'send_project_report вызван для %s, tag=%s',
+            project_name,
+            tag
+        )
 
         if tag in ['PENDING', 'WARNING', 'NOTFOUND']:
             return
 
         self.active_users.add(self.group_id)
-        logging.info(f'Активные пользователи: {list(self.active_users)}')
+        logging.info('Активные пользователи: %s', list(self.active_users))
 
         for chat_id in list(self.active_users):
             try:
                 logging.info(
-                    f'Отправка отчёта {project_name} пользователю {chat_id}'
+                    'Отправка отчёта %s пользователю %s',
+                    project_name,
+                    chat_id
                 )
 
                 if 'SUCCESS' in tag:
@@ -91,12 +153,15 @@ class IBotLog:
                     rndm_error_robot = random.choice(ERROR_ROBOTS)
                     self.get_robot(rndm_error_robot, chat_id)
 
+                date_today = dt.now().strftime(DATE_FORMAT)
                 self.send_message_str(chat_id, result)
-                logging.info(f'Отчет отправлен пользователю {chat_id}')
+                self.success_scripts_name.append(project_name)
+                self.report_message_count[date_today] += 1
+                logging.info('Отчет отправлен пользователю %s', chat_id)
 
-            except Exception as e:
+            except Exception as error:
                 self.active_users.discard(chat_id)
-                logging.error(f'Пользователь {chat_id} недоступен: {e}')
+                logging.error('Пользователь %s недоступен: %s', chat_id, error)
 
     def setup_handlers(self):
         @self.bot.message_handler(commands=['start'])
@@ -133,8 +198,8 @@ class IBotLog:
                 keyboard.add(back_button)
                 message_str = 'Выбери проект для проверки логов:'
                 self.send_message_str(chat_id, message_str, keyboard)
-            except Exception as e:
-                logging.error(f'Ошибка {e}')
+            except Exception as error:
+                logging.error('Ошибка %s', error)
 
         @self.bot.message_handler(commands=['check'])
         def show_project_logs(message):
@@ -160,8 +225,8 @@ class IBotLog:
                     rndm_error_robot = random.choice(ERROR_ROBOTS)
                     self.get_robot(rndm_error_robot, chat_id)
                 self.send_message_str(chat_id, result, keyboard)
-            except Exception as e:
-                logging.error(f'Ошибка {e}')
+            except Exception as error:
+                logging.error('Ошибка %s', error)
 
         @self.bot.message_handler(commands=['back'])
         def back_to_main(message):
@@ -173,8 +238,8 @@ class IBotLog:
                 keyboard.add(button_check)
                 message_str = 'Главное меню:'
                 self.send_message_str(chat_id, message_str, keyboard)
-            except Exception as e:
-                logging.error(f'Ошибка {e}')
+            except Exception as error:
+                logging.error('Ошибка %s', error)
 
         @self.bot.message_handler(commands=['memes'])
         def show_memes(message):

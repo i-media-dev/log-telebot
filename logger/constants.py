@@ -8,6 +8,14 @@ HI_ROBOT = 'hi-robot.png'
 LIKE_ROBOT = 'like-robot.png'
 DISSLIKE_ROBOT = 'disslike-robot.png'
 DEPLOY_ROBOT = 'deploy-robot.png'
+COFFE_ROBOT = 'coffe-robot.png'
+COUNT_ROBOT = 'count-robot.png'
+
+TIME_FOR_ALLERT = '10:00'
+"""Время для оповещения по количеству отработанных скриптов."""
+
+DATE_FORMAT = '%Y-%m-%d'
+"""Формат даты по умолчанию."""
 
 DEPLOY_ROBOTS = [
     'deploy-robot.png',
