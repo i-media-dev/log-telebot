@@ -38,7 +38,7 @@ class IBotLog:
         self.active_users: set = set()
         self.log_observer = None
         self.report_message_count: dict[str, int] = defaultdict(int)
-        self.success_scripts_name: list[str] = []
+        self.success_scripts_name: set = set()
         self.setup_handlers()
         self.setup_file_watcher()
         self.start_daily_scheduler()
@@ -159,7 +159,7 @@ class IBotLog:
 
                 date_today = dt.now().strftime(DATE_FORMAT)
                 self.send_message_str(chat_id, result)
-                self.success_scripts_name.append(project_name)
+                self.success_scripts_name.add(project_name)
                 self.report_message_count[date_today] += 1
                 logging.info('Отчет отправлен пользователю %s', chat_id)
 
