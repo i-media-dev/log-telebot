@@ -49,7 +49,19 @@ class LogMonitor:
                             ['grep', 'INFO_BOT', file_path],
                             capture_output=True, text=True, encoding='utf-8'
                         )
-                        info_bot_output = grep_process.stdout.strip()
+
+                        info_bot_lines = []
+                        for line in grep_process.stdout.strip().split('\n'):
+                            if 'INFO_BOT' in line:
+                                message = line.split(
+                                    'INFO_BOT,'
+                                )[-1].split(', handler.')[0].strip()
+                                if message:
+                                    info_bot_lines.append(f'• {message}')
+
+                        info_bot_output = '\n'.join(
+                            info_bot_lines
+                        ) if info_bot_lines else ''
                         info_bot_section = (
                             f'\n🤖 Детали:\n{info_bot_output}'
                             if info_bot_output else ''
