@@ -1,7 +1,7 @@
 import logging
 import os
-from datetime import datetime as dt
 import subprocess
+from datetime import datetime as dt
 
 from dotenv import load_dotenv
 
