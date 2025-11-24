@@ -46,41 +46,10 @@ class LogMonitor:
                             return 'PENDING', message
 
                         grep_process = subprocess.run(
-                            ['grep', '-A', '5', 'INFO_BOT', file_path],
+                            ['grep', 'INFO_BOT', file_path],
                             capture_output=True, text=True, encoding='utf-8'
                         )
-
-                        info_bot_blocks: list = []
-                        current_block: list = []
-
-                        for line in grep_process.stdout.strip().split('\n'):
-                            if 'INFO_BOT' in line:
-                                if current_block:
-                                    info_bot_blocks.append(current_block)
-                                main_message = line.split(
-                                    'INFO_BOT,'
-                                )[-1].split(', handler.')[0].strip()
-                                current_block = [
-                                    main_message
-                                ] if main_message else []
-                            elif (
-                                line.strip() and current_block
-                                and not line.startswith('--')
-                            ):
-                                current_block.append(line.strip())
-
-                        if current_block:
-                            info_bot_blocks.append(current_block)
-
-                        cleaned_output = []
-                        for block in info_bot_blocks:
-                            if block:
-                                formatted_block = '\n  '.join(block)
-                                cleaned_output.append(f"• {formatted_block}")
-
-                        info_bot_output = '\n'.join(
-                            cleaned_output
-                        ) if cleaned_output else ''
+                        info_bot_output = grep_process.stdout.strip()
                         info_bot_section = (
                             f'\n🤖 Детали:\n{info_bot_output}'
                             if info_bot_output else ''
@@ -128,6 +97,7 @@ class LogMonitor:
                             )
                             return 'ERROR', message
                         else:
+                            message = 'Статус выполнения не определен'
                             message = (
                                 f'Статус выполнения не определен\n'
                                 f'{info_bot_section}'
