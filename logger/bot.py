@@ -44,7 +44,10 @@ class IBotLog:
         self.start_daily_scheduler()
 
     def start_daily_scheduler(self):
-        """Запускает ежедневную отправку в 10:00"""
+        """
+        Запускает ежедневную отправку в 10:00 сообщения
+        о количестве полученных отчетов отработки скриптов.
+        """
         def send_morning_message():
 
             dont_work_projects = []
@@ -65,7 +68,7 @@ class IBotLog:
                 'Отработали не все скрипты: '
                 f'{self.report_message_count[date_today]}/'
                 f'{len(PROJECTS)}. Не было сообщений по скриптам: '
-                f'{dont_work_projects}.'
+                f'{dont_work_projects}. '
                 'Не лучшее начало дня, но вы справитесь!'
             )
             self.success_scripts_name.clear()

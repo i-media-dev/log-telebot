@@ -1,6 +1,7 @@
 import logging
 import os
 from datetime import datetime as dt
+import subprocess
 
 from dotenv import load_dotenv
 
@@ -44,12 +45,23 @@ class LogMonitor:
                             message = 'Файл еще пишется'
                             return 'PENDING', message
 
+                        grep_process = subprocess.run(
+                            ['grep', 'INFO_BOT', file_path],
+                            capture_output=True, text=True, encoding='utf-8'
+                        )
+                        info_bot_output = grep_process.stdout.strip()
+                        info_bot_section = (
+                            f'\n🤖 Детали:\n{info_bot_output}'
+                            if info_bot_output else ''
+                        )
+
                         if 'SCRIPT_FINISHED_STATUS=SUCCESS' in log_content:
                             message = (
                                 f'✅ Скрипт {project_name} выполнен успешно\n'
                                 f'📅 Дата: {date}\n'
                                 f'⏱️ Время выполнения: {exec_time} сек. '
                                 f'или {round(float(exec_time) / 60, 2)} мин.'
+                                f'{info_bot_section}'
                             )
                             return 'SUCCESS', message
 
@@ -81,10 +93,14 @@ class LogMonitor:
                                 f'💀 Тип ошибки: {error_type}\n'
                                 f'🚬 {error_message}\n'
                                 f'Функция, бросившая ошибку: {func_name}'
+                                f'{info_bot_section}'
                             )
                             return 'ERROR', message
                         else:
-                            message = 'Статус выполнения не определен'
+                            message = (
+                                f'Статус выполнения не определен\n'
+                                f'{info_bot_section}'
+                            )
                             return 'WARNING', message
             message = f'Сегодняшний лог для {project_name} не найден'
             return 'ERROR', message
