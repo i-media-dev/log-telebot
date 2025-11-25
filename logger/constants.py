@@ -11,6 +11,9 @@ DEPLOY_ROBOT = 'deploy-robot.png'
 COFFE_ROBOT = 'coffe-robot.png'
 COUNT_ROBOT = 'count-robot.png'
 
+GNEWS_URL = 'https://gnews.io/api/v4/top-headlines'
+"""Эндпоинт новостного апи."""
+
 TIME_FOR_ALLERT = '10:00'
 """Время для оповещения по количеству отработанных скриптов."""
 

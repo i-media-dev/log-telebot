@@ -6,14 +6,15 @@ import time
 from collections import defaultdict
 from datetime import datetime as dt
 
+import requests
 import schedule
 from dotenv import load_dotenv
 from telebot import TeleBot, types
 from watchdog.observers import Observer
 
 from logger.constants import (COFFE_ROBOT, COUNT_ROBOT, DATE_FORMAT,
-                              ERROR_ROBOTS, HI_ROBOT, MEMES, PROJECTS,
-                              SUCCESS_ROBOTS, TIME_FOR_ALLERT)
+                              ERROR_ROBOTS, GNEWS_URL, HI_ROBOT, MEMES,
+                              PROJECTS, SUCCESS_ROBOTS, TIME_FOR_ALLERT)
 from logger.filewatch import LogFileHandler
 from logger.log_monitor import LogMonitor
 from logger.logging_config import setup_logging
@@ -81,9 +82,24 @@ class IBotLog:
                     else:
                         self.get_robot(COUNT_ROBOT, chat_id)
                         self.send_message_str(chat_id, failure_message_text)
+                    news_list = self.get_news()
+                    if not news_list:
+                        continue
                 except Exception as error:
                     logging.error(
                         'Ошибка отправки утреннего сообщения: %s',
+                        error
+                    )
+                try:
+                    message_text = '📰 Немного новостей вам:\n\n'
+                    for i, news in enumerate(news_list, 1):
+                        message_text += (
+                            f"{i}. {news['description']}\n{news['url']}\n\n"
+                        )
+                    self.send_message_str(chat_id, message_text)
+                except Exception as error:
+                    logging.error(
+                        'Не удалось отправить новостное сообщение: %s',
                         error
                     )
             self.report_message_count.clear()
@@ -97,6 +113,20 @@ class IBotLog:
         scheduler_thread = threading.Thread(target=run_scheduler)
         scheduler_thread.daemon = True
         scheduler_thread.start()
+
+    def get_news(self) -> list:
+        apikey = os.getenv('GNEWS_API_KEY')
+        if not apikey:
+            return []
+        url = GNEWS_URL
+        params = {
+            'category': 'general',
+            'lang': 'ru',
+            'country': 'ru',
+            'max': '5',
+            'apikey': {apikey}
+        }
+        return requests.get(url, params=params).json()['articles']
 
     def get_robot(self, robot, chat_id, robot_folder='robot'):
         try:
