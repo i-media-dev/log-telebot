@@ -124,7 +124,7 @@ class IBotLog:
             'lang': 'ru',
             'country': 'ru',
             'max': '5',
-            'apikey': {apikey}
+            'apikey': apikey
         }
         return requests.get(url, params=params).json()['articles']
 
