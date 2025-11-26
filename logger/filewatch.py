@@ -1,10 +1,11 @@
 import logging
 import os
-from datetime import datetime as dt
 from collections import deque
+from datetime import datetime as dt
 
 from watchdog.events import PatternMatchingEventHandler
-from logger.constants import MAX_PROCESSED_IDS, PROJECTS, DATE_FORMAT
+
+from logger.constants import DATE_FORMAT, MAX_PROCESSED_IDS, PROJECTS
 
 
 class WatchLog(PatternMatchingEventHandler):

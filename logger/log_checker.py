@@ -3,7 +3,7 @@ import os
 from datetime import datetime as dt
 from typing import Tuple
 
-from logger.constants import PROJECTS, DATE_FORMAT
+from logger.constants import DATE_FORMAT, PROJECTS
 from logger.log_parser import LogParser, LogParseResult
 
 
