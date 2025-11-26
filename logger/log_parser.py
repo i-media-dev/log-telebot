@@ -1,4 +1,5 @@
 import json
+import re
 from dataclasses import dataclass, field
 from typing import List, Optional
 
@@ -22,12 +23,12 @@ class LogParser:
 
     @staticmethod
     def _find_json_record(content: str) -> Optional[dict]:
-        """Защищенный метод находит JSON запись в логе."""
+        pattern = r'\{.*\}'
         for line in content.split('\n'):
-            line = line.strip()
-            if line.startswith('{') and line.endswith('}'):
+            match = re.search(pattern, line)
+            if match:
                 try:
-                    return json.loads(line)
+                    return json.loads(match.group(0))
                 except json.JSONDecodeError:
                     continue
         return None
@@ -63,13 +64,13 @@ class LogParser:
             error_message = json_data.get('ERROR_MESSAGE')
             is_completed = json_data.get('ENDLOGGING') == 1
         else:
-            status = 'PENDING' if 'ENDLOGGING=1' not in content else 'UNKNOWN'
+            status = 'PENDING'
             date = ''
             execution_time = 0.0
             function_name = ''
             error_type = None
             error_message = None
-            is_completed = 'ENDLOGGING=1' in content
+            is_completed = False
 
         info_bot_messages = LogParser._extract_info_bot_messages(content)
 
