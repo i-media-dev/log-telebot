@@ -156,7 +156,7 @@ class IBotLog:
             self.log_observer.schedule(
                 event_handler,
                 log_dir,
-                recursive=False
+                recursive=True
             )
 
         self.log_observer.start()
