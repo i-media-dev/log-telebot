@@ -15,8 +15,8 @@ from watchdog.observers import Observer
 from logger.constants import (COFFE_ROBOT, COUNT_ROBOT, DATE_FORMAT,
                               ERROR_ROBOTS, GNEWS_URL, HI_ROBOT, MEMES,
                               PROJECTS, SUCCESS_ROBOTS, TIME_FOR_ALLERT)
-from logger.filewatch import LogFileHandler
-from logger.log_monitor import LogMonitor
+from logger.filewatch import WatchLog
+from logger.log_checker import LogChecker
 from logger.logging_config import setup_logging
 
 setup_logging()
@@ -30,10 +30,10 @@ class IBotLog:
         self,
         token: str,
         group_id=os.getenv('GROUP_ID'),
-        log_monitor=None
+        log_checker=None
     ):
         self.token = token
-        self.log_monitor = log_monitor or LogMonitor()
+        self.log_checker = log_checker or LogChecker()
         self.bot = TeleBot(token)
         self.group_id = int(group_id)
         self.active_users: set = set()
@@ -149,7 +149,7 @@ class IBotLog:
 
     def setup_file_watcher(self):
         self.log_observer = Observer()
-        event_handler = LogFileHandler(self)
+        event_handler = WatchLog(self)
 
         for project_config in PROJECTS.values():
             log_dir = project_config['log_path']
@@ -162,7 +162,7 @@ class IBotLog:
         self.log_observer.start()
 
     def send_project_report(self, project_name: str):
-        tag, result = self.log_monitor.check_logs(project_name)
+        tag, result = self.log_checker.check_logs(project_name)
         logging.info(
             'send_project_report вызван для %s, tag=%s',
             project_name,
@@ -243,7 +243,7 @@ class IBotLog:
             try:
                 chat_id = message.chat.id
                 project_name = message.text.split(' ', 1)[1]
-                tag, result = self.log_monitor.check_logs(project_name)
+                tag, result = self.log_checker.check_logs(project_name)
                 if not result:
                     logging.error('Ошибка мониторщик логов не отработал')
                     raise ValueError
