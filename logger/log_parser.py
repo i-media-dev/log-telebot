@@ -1,5 +1,5 @@
 import json
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import List, Optional
 
 
@@ -13,12 +13,8 @@ class LogParseResult:
     error_type: Optional[str] = None
     error_message: Optional[str] = None
     function_name: Optional[str] = None
-    info_bot_messages: List[str] = []
+    info_bot_messages: List[str] = field(default_factory=list)
     is_completed: bool = False
-
-    def __post_init__(self):
-        if self.info_bot_messages is None:
-            self.info_bot_messages = []
 
 
 class LogParser:
