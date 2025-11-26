@@ -30,8 +30,8 @@ class WatchLog(PatternMatchingEventHandler):
         for name, config in projects.items():
             self.log_dir_to_project[config['log_path']] = name
 
-    def on_created(self, event):
-        """Метод обрабатывает создание новых лог-файлов."""
+    def on_modified(self, event):
+        """Метод обрабатывает изменение лог-файлов."""
         if event.is_directory:
             return
 
