@@ -16,6 +16,7 @@ from logger.constants import (COFFE_ROBOT, COUNT_ROBOT, DATE_FORMAT,
                               ERROR_ROBOTS, GNEWS_URL, HI_ROBOT, MEMES,
                               PROJECTS, SUCCESS_ROBOTS, TIME_FOR_ALLERT)
 from logger.filewatch import WatchLog
+from logger.ii_agent import LlmAgent, model
 from logger.log_checker import LogChecker
 from logger.logging_config import setup_logging
 
@@ -284,3 +285,20 @@ class IBotLog:
             chat_id = chat.id
             random_memes = random.choice(MEMES)
             self.get_robot(random_memes, chat_id, 'easteregg')
+
+        @self.bot.message_handler(
+            func=lambda m: m.text and m.text.strip().lower().startswith(
+                'i-bot'
+            )
+        )
+        def handle_i_bot_request(message):
+            try:
+                chat_id = message.chat.id
+                user_query = message.text.strip()[5:].strip()
+                agent = LlmAgent(model)
+                response = agent.ask(user_query)
+                self.send_message_str(chat_id, str(response)[:4000])
+
+            except Exception as error:
+                logging.error('Ошибка в handle_i_bot_request: %s', error)
+                self.send_message_str(chat_id, '')
