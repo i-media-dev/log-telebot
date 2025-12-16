@@ -2,7 +2,7 @@ import logging
 import os
 
 from dotenv import load_dotenv
-from langchain.agents import create_react_agent
+from langchain.agents import create_react_agent, AgentExecutor
 from langchain.agents.output_parsers import ReActSingleInputOutputParser
 from langchain.prompts import PromptTemplate
 from langchain_core.language_models import LanguageModelLike
@@ -37,30 +37,28 @@ class LlmAgent:
             Действуй.
         """)
 
-        self._agent = create_react_agent(
+        agent = create_react_agent(
             llm=model,
             tools=self._tools,
             prompt=prompt.partial(system_prompt=system_prompt),
             output_parser=ReActSingleInputOutputParser(),
-            stop_sequence=True
+        )
+
+        self._executor = AgentExecutor(
+            agent=agent,
+            tools=self._tools,
+            verbose=True,
+            handle_parsing_errors=True
         )
 
     def ask(self, question: str) -> str:
         try:
-            response = self._agent.invoke({
+            result = self._executor.invoke({
                 "input": question
             })
-            if hasattr(response, 'output'):
-                logging.info(
-                    'В ask получен ответ output: %s',
-                    str(response.output)
-                )
-                return str(response.output)
-            else:
-                logging.info(
-                    'В ask получен ответ: %s',
-                    str(response)
-                )
-                return str(response)
-        except Exception as error:
-            return f'Ошибка: {error}'
+
+            return result.get('output', '🤖 Ничего не могу сказать')
+
+        except Exception:
+            logging.exception('Ошибка в LlmAgent.ask')
+            return '🤖 Ошибка при обработке запроса'
