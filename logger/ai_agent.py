@@ -34,7 +34,7 @@ class LlmAgent:
         self._agent = create_react_agent(
             model=model,
             tools=self._tools,
-            system_prompt=system_prompt,
+            prompt=system_prompt,
         )
 
     def ask(self, question: str) -> str:
