@@ -2,7 +2,7 @@ import os
 
 from langchain_core.tools import tool
 
-from logger.constants_ii import LOG_PATHS
+from logger.constants_ai import LOG_PATHS
 
 
 @tool

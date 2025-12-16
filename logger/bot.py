@@ -12,11 +12,11 @@ from dotenv import load_dotenv
 from telebot import TeleBot, types
 from watchdog.observers import Observer
 
+from logger.ai_agent import LlmAgent, model
 from logger.constants import (COFFE_ROBOT, COUNT_ROBOT, DATE_FORMAT,
                               ERROR_ROBOTS, GNEWS_URL, HI_ROBOT, MEMES,
                               PROJECTS, SUCCESS_ROBOTS, TIME_FOR_ALLERT)
 from logger.filewatch import WatchLog
-from logger.ii_agent import LlmAgent, model
 from logger.log_checker import LogChecker
 from logger.logging_config import setup_logging
 
@@ -296,7 +296,7 @@ class IBotLog:
                 chat_id = message.chat.id
                 user_query = message.text.strip()[5:].strip()
                 agent = LlmAgent(model)
-                response = agent.ask(user_query)
+                response = agent.invoke(user_query)
                 self.send_message_str(chat_id, str(response)[:4000])
 
             except Exception as error:

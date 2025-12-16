@@ -1,3 +1,5 @@
+import os
+
 from dotenv import load_dotenv
 from langchain.agents import create_react_agent
 from langchain.agents.output_parsers import ReActSingleInputOutputParser
@@ -5,13 +7,16 @@ from langchain.prompts import PromptTemplate
 from langchain_core.language_models import LanguageModelLike
 from langchain_gigachat.chat_models import GigaChat
 
-from logger.constants_ii import PROMPT
-from logger.ii_tools import find_and_read_log
+from logger.ai_tools import find_and_read_log
+from logger.constants_ai import PROMPT
 
 load_dotenv()
 
+gigachat_key = os.getenv('GIGACHAT_API_KEY')
+
 model = GigaChat(
     model="GigaChat-2-Max",
+    credentials=gigachat_key,
     verify_ssl_certs=False,
 )
 
@@ -37,6 +42,14 @@ class LlmAgent:
             stop_sequence=True
         )
 
-    def ask(self, question: str) -> str:
-        response = self._agent.invoke({"input": question})
-        return str(response)
+    def invoke(self, question: str) -> str:
+        try:
+            response = self._agent.invoke({
+                "input": question
+            })
+            if hasattr(response, 'output'):
+                return str(response.output)
+            else:
+                return str(response)
+        except Exception as error:
+            return f'Ошибка: {error}'
