@@ -49,7 +49,7 @@ def find_and_read_log(
     else:
         log_files = [
             file for file in os.listdir(date_path)
-            if file.endswith('.log') and len(file) == 16
+            if file.endswith('.log')
         ]
 
         if not log_files:
