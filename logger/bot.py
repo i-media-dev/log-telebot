@@ -293,11 +293,16 @@ class IBotLog:
         )
         def handle_i_bot_request(message):
             try:
+                logging.info('Сработал хендлер на i-bot')
                 chat_id = message.chat.id
                 user_query = message.text.strip()[5:].strip()
                 agent = LlmAgent(model)
-                response = agent.invoke(user_query)
-                self.send_message_str(chat_id, str(response)[:4000])
+                response = agent.ask(user_query)
+                logging.info('Получен ответ: %s', response)
+                self.active_users.add(self.group_id)
+                for chat_id in list(self.active_users):
+                    self.send_message_str(chat_id, str(response)[:4000])
+                    logging.info('Сообщение отправлено в чат: %s', chat_id)
 
             except Exception as error:
                 logging.error('Ошибка в handle_i_bot_request: %s', error)
