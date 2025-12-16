@@ -33,8 +33,11 @@ class LlmAgent:
 
         prompt = PromptTemplate.from_template("""
             {system_prompt}
+            Инструменты: {tools}
+            Имена инструментов: {tool_names}
             Запрос: {input}
             Действуй.
+            {agent_scratchpad}
         """)
 
         agent = create_react_agent(
