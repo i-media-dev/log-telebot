@@ -287,23 +287,25 @@ class IBotLog:
             self.get_robot(random_memes, chat_id, 'easteregg')
 
         @self.bot.message_handler(
-            func=lambda m: m.text and m.text.strip().lower().startswith(
-                'i-bot'
+            content_types=['text'],
+            func=lambda m: (
+                m.text
+                and 'i-bot' in m.text.lower()
+                and not m.text.strip().startswith('/')
             )
         )
         def handle_i_bot_request(message):
             try:
                 logging.info('Сработал хендлер на i-bot')
                 chat_id = message.chat.id
-                user_query = message.text.strip()[5:].strip()
+                text = message.text.lower()
+                after_trigger = text.split('i-bot', 1)[1].strip()
+                user_query = after_trigger.lstrip(' ,.:;-')
                 agent = LlmAgent(model)
                 response = agent.ask(user_query)
                 logging.info('Получен ответ: %s', response)
-                self.active_users.add(self.group_id)
-                for chat_id in list(self.active_users):
-                    self.send_message_str(chat_id, str(response)[:4000])
-                    logging.info('Сообщение отправлено в чат: %s', chat_id)
-
+                self.send_message_str(chat_id, str(response)[:4000])
+                logging.info('Сообщение отправлено в чат: %s', chat_id)
             except Exception as error:
                 logging.error('Ошибка в handle_i_bot_request: %s', error)
                 self.send_message_str(chat_id, '')
