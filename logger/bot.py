@@ -13,9 +13,11 @@ from telebot import TeleBot, types
 from watchdog.observers import Observer
 
 from logger.ai_agent import LlmAgent, model
+from logger.check_ftp import FtpChecker
 from logger.constants import (COFFE_ROBOT, COUNT_ROBOT, DATE_FORMAT,
-                              ERROR_ROBOTS, GNEWS_URL, HI_ROBOT, MEMES,
-                              PROJECTS, SUCCESS_ROBOTS, TIME_FOR_ALLERT)
+                              ERROR_ROBOTS, GNEWS_URL, HI_ROBOT, HOST, MEMES,
+                              PASSWORD, PROJECTS, SUCCESS_ROBOTS,
+                              TIME_FOR_ALLERT, USERNAME)
 from logger.filewatch import WatchLog
 from logger.log_checker import LogChecker
 from logger.logging_config import setup_logging
@@ -83,6 +85,15 @@ class IBotLog:
                     else:
                         self.get_robot(COUNT_ROBOT, chat_id)
                         self.send_message_str(chat_id, failure_message_text)
+
+                    if all([HOST, USERNAME, PASSWORD]):
+                        checker_ftp = FtpChecker(HOST, USERNAME, PASSWORD)
+                        messages = checker_ftp.check_new_files()
+                        message_new_feed = ''
+                        for i, line in enumerate(messages, 1):
+                            message_new_feed += f'{i}. {line}\n'
+                        self.send_message_str(chat_id, message_new_feed)
+
                     news_list = self.get_news()
                     if not news_list:
                         continue
@@ -92,12 +103,12 @@ class IBotLog:
                         error
                     )
                 try:
-                    message_text = '📰 Немного новостей вам:\n\n'
+                    message_news_text = '📰 Немного новостей вам:\n\n'
                     for i, news in enumerate(news_list, 1):
-                        message_text += (
+                        message_news_text += (
                             f"{i}. {news['description']}\n{news['url']}\n\n"
                         )
-                    self.send_message_str(chat_id, message_text)
+                    self.send_message_str(chat_id, message_news_text)
                 except Exception as error:
                     logging.error(
                         'Не удалось отправить новостное сообщение: %s',

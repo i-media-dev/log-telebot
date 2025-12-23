@@ -4,6 +4,15 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+USERNAME = os.getenv('USERNAME_FTP')
+"""Логин FTP юзера."""
+
+HOST = os.getenv('HOST_FTP')
+"""Хост FTP сервера."""
+
+PASSWORD = os.getenv('PASSWORD_FTP')
+"""Пароль к FTP серверу."""
+
 HI_ROBOT = 'hi-robot.png'
 LIKE_ROBOT = 'like-robot.png'
 DISSLIKE_ROBOT = 'disslike-robot.png'
@@ -65,9 +74,9 @@ PROJECTS = {
     'uvi_feed_handler': {
         'log_path': os.getenv('LOG_PATH_UVI', '')
     },
-    'wb_parser': {
-        'log_path': os.getenv('LOG_PATH_WB', '')
-    }
+    # 'wb_parser': {
+    #     'log_path': os.getenv('LOG_PATH_WB', '')
+    # }
 }
 """
 Константа, содержащая настройки существующих
@@ -88,3 +97,23 @@ MEMES = [
     'statem-robot.png'
 ]
 """Мемы."""
+
+NEW_PATHS = [
+    '/home/main_ftp_user/projects/auchan/new_feeds',
+    '/home/main_ftp_user/projects/citilink/new_feeds',
+    '/home/main_ftp_user/projects/divanchik/new_feeds',
+    '/home/main_ftp_user/projects/eapteka/new_feeds',
+    '/home/main_ftp_user/projects/globus/new_feeds',
+    '/home/main_ftp_user/projects/uvi/new_feeds'
+]
+"""Список путей к обработанным фидам на FTP."""
+
+OLD_PATHS = [
+    '/home/egor/project/auchan/temp_feeds',
+    '/home/egor/project/citilink/temp_feeds',
+    '/home/egor/project/divanchik/temp_feeds',
+    '/home/egor/project/eapteka/temp_feeds',
+    '/home/egor/project/globus/temp_feeds',
+    '/home/egor/project/uvi/temp_feeds'
+]
+"""Список путей к скачанным фидам на сервер."""
