@@ -13,6 +13,7 @@ from telebot import TeleBot, types
 from watchdog.observers import Observer
 
 from logger.ai_agent import LlmAgent, model
+from logger.check_files import FileChecker
 from logger.check_ftp import FtpChecker
 from logger.constants import (COFFE_ROBOT, COUNT_ROBOT, DATE_FORMAT,
                               ERROR_ROBOTS, GNEWS_URL, HI_ROBOT, HOST, MEMES,
@@ -86,13 +87,36 @@ class IBotLog:
                         self.get_robot(COUNT_ROBOT, chat_id)
                         self.send_message_str(chat_id, failure_message_text)
 
+                    checker_file = FileChecker()
+                    messages_old_feeds = checker_file.check_files()
+                    message_old_feed = (
+                        'Сводка по обновлению скачанных файлов:\n'
+                    )
+                    if messages_old_feeds:
+                        for i, line in enumerate(messages_old_feeds, 1):
+                            message_old_feed += f'{i}. {line}\n'
+                        self.send_message_str(chat_id, message_old_feed)
+                    else:
+                        message_old_feed += (
+                            'А нет сводки! Что-то пошло не так('
+                        )
+                        self.send_message_str(chat_id, message_old_feed)
+
                     if all([HOST, USERNAME, PASSWORD]):
                         checker_ftp = FtpChecker(HOST, USERNAME, PASSWORD)
-                        messages = checker_ftp.check_new_files()
-                        message_new_feed = ''
-                        for i, line in enumerate(messages, 1):
-                            message_new_feed += f'{i}. {line}\n'
-                        self.send_message_str(chat_id, message_new_feed)
+                        messages_ftp_feeds = checker_ftp.check_new_files()
+                        message_new_feed = (
+                            'Сводка по обновлению файлов на FTP:\n'
+                        )
+                        if messages_ftp_feeds:
+                            for i, line in enumerate(messages_ftp_feeds, 1):
+                                message_new_feed += f'{i}. {line}\n'
+                            self.send_message_str(chat_id, message_new_feed)
+                        else:
+                            message_new_feed += (
+                                'А нет сводки! Что-то пошло не так('
+                            )
+                            self.send_message_str(chat_id, message_new_feed)
 
                     news_list = self.get_news()
                     if not news_list:
