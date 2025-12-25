@@ -10,10 +10,4 @@ services:
     restart: unless-stopped
     volumes:
       - ./logs:/app/logs
-      - /home/egor/project/wb/logs:/home/egor/project/wb/logs
-      - /home/egor/project/citilink/logs:/home/egor/project/citilink/logs
-      - /home/egor/project/auchan/logs:/home/egor/project/auchan/logs
-      - /home/egor/project/eapteka/logs:/home/egor/project/eapteka/logs
-      - /home/egor/project/uvi/logs:/home/egor/project/uvi/logs
-      - /home/egor/project/globus/logs:/home/egor/project/globus/logs
-      - /home/egor/project/divanchik/logs:/home/egor/project/divanchik/logs
+      - /home/egor/project:/home/egor/project
