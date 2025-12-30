@@ -74,6 +74,9 @@ PROJECTS = {
     'uvi_feed_handler': {
         'log_path': os.getenv('LOG_PATH_UVI', '')
     },
+    'file_stealer_bot(carmoney)': {
+        'log_path': os.getenv('LOG_PATH_CARMONEY', '')
+    },
     # 'wb_parser': {
     #     'log_path': os.getenv('LOG_PATH_WB', '')
     # }
