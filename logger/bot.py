@@ -17,8 +17,8 @@ from logger.check_files import FileChecker
 from logger.check_ftp import FtpChecker
 from logger.constants import (COFFE_ROBOT, COUNT_ROBOT, DATE_FORMAT,
                               ERROR_ROBOTS, GNEWS_URL, HI_ROBOT, HOST, MEMES,
-                              PASSWORD, PROJECTS, SUCCESS_ROBOTS,
-                              TIME_FOR_ALLERT, USERNAME, OFF_PROJECTS)
+                              OFF_PROJECTS, PASSWORD, PROJECTS, SUCCESS_ROBOTS,
+                              TIME_FOR_ALLERT, USERNAME)
 from logger.filewatch import WatchLog
 from logger.log_checker import LogChecker
 from logger.logging_config import setup_logging
