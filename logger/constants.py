@@ -55,6 +55,9 @@ ERROR_ROBOTS = [
 ]
 """Мемные роботы для неудачных операций."""
 
+OFF_PROJECTS = ('wb_parser', 'file_stealer_bot(carmoney)')
+"""Отключенные скрипты или не попадающие в отбивку."""
+
 PROJECTS = {
     'auchan_feed_handler': {
         'log_path': os.getenv('LOG_PATH_AUCHAN', '')
@@ -77,9 +80,9 @@ PROJECTS = {
     'file_stealer_bot(carmoney)': {
         'log_path': os.getenv('LOG_PATH_CARMONEY', '')
     },
-    # 'wb_parser': {
-    #     'log_path': os.getenv('LOG_PATH_WB', '')
-    # }
+    'wb_parser': {
+        'log_path': os.getenv('LOG_PATH_WB', '')
+    }
 }
 """
 Константа, содержащая настройки существующих

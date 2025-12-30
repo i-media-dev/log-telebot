@@ -18,7 +18,7 @@ from logger.check_ftp import FtpChecker
 from logger.constants import (COFFE_ROBOT, COUNT_ROBOT, DATE_FORMAT,
                               ERROR_ROBOTS, GNEWS_URL, HI_ROBOT, HOST, MEMES,
                               PASSWORD, PROJECTS, SUCCESS_ROBOTS,
-                              TIME_FOR_ALLERT, USERNAME)
+                              TIME_FOR_ALLERT, USERNAME, OFF_PROJECTS)
 from logger.filewatch import WatchLog
 from logger.log_checker import LogChecker
 from logger.logging_config import setup_logging
@@ -62,25 +62,34 @@ class IBotLog:
             if day_of_week in (6, 7):
                 wish_text = 'Хороших выходных!'
             for name, _ in PROJECTS.items():
+                if name in OFF_PROJECTS:
+                    continue
                 if name not in self.success_scripts_name:
                     dont_work_projects.append(name)
 
+            projects_count = len(PROJECTS) - len(OFF_PROJECTS)
+            offed_projects_report = (
+                'Отключенные или не попадающие '
+                f'в отбивку проекты: {OFF_PROJECTS}'
+            )
+
             success_message_text = (
                 f'Отработали все {self.report_message_count[date_today]}/'
-                f'{len(PROJECTS)} скриптов. {wish_text}'
+                f'{projects_count} скриптов. {offed_projects_report}. '
+                f'{wish_text}'
             )
             failure_message_text = (
                 'Отработали не все скрипты: '
                 f'{self.report_message_count[date_today]}/'
-                f'{len(PROJECTS)}. Не было сообщений по скриптам: '
-                f'{dont_work_projects}. '
+                f'{projects_count}. Не было сообщений по скриптам: '
+                f'{dont_work_projects}. {offed_projects_report}. '
                 'Не лучшее начало дня, но вы справитесь!'
             )
             self.success_scripts_name.clear()
             self.active_users.add(self.group_id)
             for chat_id in list(self.active_users):
                 try:
-                    if self.report_message_count[date_today] == len(PROJECTS):
+                    if self.report_message_count[date_today] == projects_count:
                         self.get_robot(COFFE_ROBOT, chat_id)
                         self.send_message_str(chat_id, success_message_text)
                     else:
