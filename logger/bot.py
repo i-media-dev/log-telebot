@@ -17,7 +17,8 @@ from logger.check_files import FileChecker
 from logger.check_ftp import FtpChecker
 from logger.constants import (COFFE_ROBOT, COUNT_ROBOT, DATE_FORMAT,
                               ERROR_ROBOTS, GNEWS_URL, HI_ROBOT, HOST, MEMES,
-                              OFF_PROJECTS, PASSWORD, PROJECTS, SUCCESS_ROBOTS,
+                              OFF_PROJECTS, PASSWORD, PROJECTS,
+                              SEND_MESSAGE_RETRIES, SUCCESS_ROBOTS,
                               TIME_FOR_ALLERT, USERNAME)
 from logger.filewatch import WatchLog
 from logger.log_checker import LogChecker
@@ -176,21 +177,36 @@ class IBotLog:
     def get_robot(self, robot, chat_id, robot_folder='robot'):
         try:
             with open(f'{robot_folder}/{robot}', 'rb') as photo:
-                self.bot.send_sticker(chat_id, photo)
+                self.bot.send_sticker(chat_id, photo, timeout=20)
         except FileNotFoundError:
             logging.warning('Робот %s не найден', robot)
+        except Exception as error:
+            logging.error('Неожиданная ошибка: %s', error)
 
     def send_message_str(self, chat_id, message_str, keyboard=None):
-        try:
-            self.bot.send_message(
-                chat_id=chat_id,
-                text=message_str,
-                reply_markup=keyboard
-            )
-            logging.info('Сообщение отправлено получателю %s', chat_id)
-        except Exception as error:
-            logging.error('Ошибка при отправке сообщения: %s', error)
-            raise
+        retries = SEND_MESSAGE_RETRIES
+
+        for attempt in range(1, retries + 1):
+            try:
+                self.bot.send_message(
+                    chat_id=chat_id,
+                    text=message_str,
+                    reply_markup=keyboard,
+                    timeout=20
+                )
+                logging.info('Сообщение отправлено получателю %s', chat_id)
+                return
+            except Exception as error:
+                logging.error(
+                    'Ошибка отправки (попытка %s/%s) для %s: %r',
+                    attempt,
+                    retries,
+                    chat_id,
+                    error
+                )
+                if attempt == retries:
+                    raise
+                time.sleep(2)
 
     def setup_file_watcher(self):
         self.log_observer = Observer()
