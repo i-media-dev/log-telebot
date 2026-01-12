@@ -177,7 +177,7 @@ class IBotLog:
     def get_robot(self, robot, chat_id, robot_folder='robot'):
         try:
             with open(f'{robot_folder}/{robot}', 'rb') as photo:
-                self.bot.send_sticker(chat_id, photo, timeout=20)
+                self.bot.send_sticker(chat_id, photo, timeout=60)
         except FileNotFoundError:
             logging.warning('Робот %s не найден', robot)
         except Exception as error:
@@ -192,7 +192,7 @@ class IBotLog:
                     chat_id=chat_id,
                     text=message_str,
                     reply_markup=keyboard,
-                    timeout=20
+                    timeout=60
                 )
                 logging.info('Сообщение отправлено получателю %s', chat_id)
                 return
