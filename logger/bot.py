@@ -206,7 +206,7 @@ class IBotLog:
                 )
                 if attempt == retries:
                     raise
-                time.sleep(2)
+                time.sleep(5)
 
     def setup_file_watcher(self):
         self.log_observer = Observer()

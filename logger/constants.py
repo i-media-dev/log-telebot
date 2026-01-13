@@ -4,7 +4,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-SEND_MESSAGE_RETRIES = 3
+SEND_MESSAGE_RETRIES = 5
 """Количество попыток для отправки сообщения."""
 
 USERNAME = os.getenv('USERNAME_FTP')
