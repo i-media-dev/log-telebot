@@ -128,6 +128,6 @@ OLD_PATHS = [
     '/home/egor/project/eapteka/temp_feeds',
     '/home/egor/project/globus/temp_feeds',
     '/home/egor/project/uvi/temp_feeds',
-    '/home/egor/project/yvesrocher/new_feeds'
+    '/home/egor/project/yvesrocher/temp_feeds'
 ]
 """Список путей к скачанным фидам на сервер."""
