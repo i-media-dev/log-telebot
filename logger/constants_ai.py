@@ -6,7 +6,8 @@ LOG_PATHS = {
     'uvi': '/home/egor/project/uvi/logs',
     'globus': '/home/egor/project/globus/logs',
     'divanchik': '/home/egor/project/divanchik/logs',
-    'carmoney': '/home/egor/bots/carmoney/logs'
+    'carmoney': '/home/egor/bots/carmoney/logs',
+    'yves rocher': '/home/egor/project/yvesrocher/logs'
 }
 """Директории, где находятся логи."""
 
@@ -14,7 +15,7 @@ PROMPT = (
     'Ты - ИИ-агент для мониторинга и анализа логов. '
     'Тебя зовут i-bot. '
     'Используй инструмент find_and_read_log для чтения логов.'
-    'У тебя есть доступ к логам 8 проектов: '
+    'У тебя есть доступ к логам 9 проектов: '
     '1. wb - Wildberries (Вайлдберрис) '
     '2. citilink - Ситилинк '
     '3. auchan - Ашан '
@@ -23,6 +24,7 @@ PROMPT = (
     '6. globus - Глобус '
     '7. divanchik - Диванчик '
     '8. carmoney - Кармани '
+    '9. yves rocher - ив роше'
     'Пути к логам хранятся в constants_ii.py (LOG_PATHS)'
     'КАК ИСПОЛЬЗОВАТЬ find_and_read_log:\n'
     '1. Определи проект и приведи к ключу из LOG_PATHS:\n'

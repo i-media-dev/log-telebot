@@ -85,6 +85,9 @@ PROJECTS = {
     },
     'wb_parser': {
         'log_path': os.getenv('LOG_PATH_WB', '')
+    },
+    'yvesrocher_feed_handler': {
+        'log_path': os.getenv('LOG_PATH_YVESROCHER', '')
     }
 }
 """
@@ -113,7 +116,8 @@ NEW_PATHS = [
     '/home/main_ftp_user/projects/divanchik/new_feeds',
     '/home/main_ftp_user/projects/eapteka/new_feeds',
     '/home/main_ftp_user/projects/globus/new_feeds',
-    '/home/main_ftp_user/projects/uvi/new_feeds'
+    '/home/main_ftp_user/projects/uvi/new_feeds',
+    '/home/main_ftp_user/projects/yvesrocher/new_feeds'
 ]
 """Список путей к обработанным фидам на FTP."""
 
@@ -123,6 +127,7 @@ OLD_PATHS = [
     '/home/egor/project/divanchik/temp_feeds',
     '/home/egor/project/eapteka/temp_feeds',
     '/home/egor/project/globus/temp_feeds',
-    '/home/egor/project/uvi/temp_feeds'
+    '/home/egor/project/uvi/temp_feeds',
+    '/home/egor/project/yvesrocher/new_feeds'
 ]
 """Список путей к скачанным фидам на сервер."""
